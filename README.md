@@ -122,13 +122,13 @@ console.log("Total items:", totalItems());
 clearCart();
 ```
 
-#### Run the code
+### I.2.3. Run the code
 
 ```bash
 npx ts-node src/index.ts
 ```
 
-#### Expected Output
+### I.2.4. Expected Output
 
 ```bash
 Total items: 3
@@ -279,13 +279,13 @@ describe("Cart", () => {
 });
 ```
 
-#### Run the tests
+### I.4.2. Run the tests
 
 ```bash
 npx vitest
 ```
 
-#### Expected output
+### I.4.3. Expected Output
 
 ```bash
  ✓ tests/cart.test.ts (1 test) 3ms
@@ -297,10 +297,114 @@ npx vitest
       ...
 ```
 
-Mandatory tasks                         | Status    | Reference
+### I.4.4. Mandatory tasks
+
+To-do                                   | Status    | Reference
 :---                                    | :---:     | :---
 The project is running in strict mode   | ✅        | [I.1.2.](#i12-modify-tsconfigjson)
 The procedural version is running       | ✅        | [I.2.2.](#i22-manual-testing)
 The OOP version is running              | ✅        | [I.3.4.](#i34-step-4-use-in-indexts)
 There is at least 1 test                | ✅        | [I.4.1.](#i41-write-tests-for-cart)
 No `any`                                | ✅        | [I.3.](#i3-stage-3-object-oriented-programming-refactor)
+
+## I.5 Additional tasks (for those interested)
+
+### I.5.1. Add totalPrice() method in OOP version
+
+```ts
+// src/oop/CartItem.ts
+    totalPrice(): number {
+        return this.product.price * this.quantity;
+    }
+```
+
+```ts
+// src/oop/Cart.ts
+  totalPrice(): number {
+    return this.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  }
+```
+
+```ts
+// src/index.ts
+...
+console.log("Total price:", cart.totalPrice());
+```
+
+### I.5.2. Add validation: quantity > 0
+
+```ts
+// src/oop/Cart.ts
+  add(product: Product, quantity: number): void {
+    ...
+    if (quantity <=0) {
+      throw new Error("Quantity must be positive");
+    ...
+    }
+  }
+```
+
+```ts
+// src/index.ts
+...
+try {
+    cart.add(laptop, 0);
+} catch (e) {
+    console.error("Error adding product:", (e as Error).message);
+}
+```
+
+### I.5.3. Add remove(productId) method
+
+```ts
+// src/oop/Cart.ts
+  remove(productId: string): void {
+    this.items = this.items.filter(item => item.product.id !== productId);
+  }
+```
+
+```ts
+// src/index.ts
+...
+cart.remove("1");
+console.log("Total items after removal:", cart.totalItems());
+```
+
+### I.5.4. Try making two independent baskets
+
+```ts
+// src/index.ts
+...
+const cart = new Cart(); // already exists
+...
+
+const cart2 = new Cart();
+const phone = new Product("2","Nokia 3310", 100);
+cart2.add(phone, 1);
+console.log("Cart 2 total items:", cart2.totalItems());
+```
+
+### I.5.5. Run the code to test all new features
+
+```bash
+npx ts-node src/index.ts
+```
+
+### I.5.6. Expected Output (only if all instructions are followed correctly)
+
+```bash
+Total items: 3
+Total price: 9000                                       # <I.5.1./>
+Error adding product: Quantity must be positive         # <I.5.2./>
+Total items after removal: 0                            # <I.5.3./> 
+Cart 2 total items: 1                                   # <I.5.4./>
+```
+
+## I.6. Discussion Summary
+
+Questions                               | Answers
+:---                                    | :---
+Why is global state problematic?        | It lacks encapsulation, leading to unprotected data and preventing the creation of independent instances
+Is a class without methods OOP?         | No; **true OOP** requires grouping data with behavior (methods) to ensure the object manages its own state
+Does OOP increase performance?          | Generally no; it prioritizes developer productivity and code maintainability over raw execution speed
+What is gained by multiple instances?   | It allows for independent internal states and allows for modeling multiple real entities separately

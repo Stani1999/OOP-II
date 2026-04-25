@@ -14,4 +14,10 @@ export class CartItem {
     increase(quantity: number): void {
         this._quantity += quantity;
     }
+
+    // <Lab I.5.1.>
+    totalPrice(): number {
+        return this.product.price * this.quantity;
+    }
+    // </Lab I.5.1.>
 }
