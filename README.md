@@ -408,3 +408,139 @@ Why is global state problematic?        | It lacks encapsulation, leading to unp
 Is a class without methods OOP?         | No; **true OOP** requires grouping data with behavior (methods) to ensure the object manages its own state
 Does OOP increase performance?          | Generally no; it prioritizes developer productivity and code maintainability over raw execution speed
 What is gained by multiple instances?   | It allows for independent internal states and allows for modeling multiple real entities separately
+
+
+---
+
+## **Lab II: Encapsulation**
+
+## II.1. Stage 1. Class Sealing
+
+### II.1.1. Task 1 - [Product](oop-ts-shop/src/oop/Product.ts) Validation
+
+```ts
+// src/oop/Product.ts
+export class Product {
+    private readonly _id:string;
+    private _name:string;
+    private _price:number;
+
+    constructor(id:string, name:string, price:number) {
+        if (!id) throw new Error("Product id cannot be empty");
+        if (!name) throw new Error("Product name cannot be empty");
+        if (price < 0) throw new Error("Product price cannot be negative");
+
+        this._id = id;
+        this._name = name;
+        this._price = price;
+    }
+    
+    get id(): string {
+        return this._id;
+    }
+
+    get name(): string {
+        return this._name;
+    }   
+
+    get price(): number {
+        return this._price;
+    }
+}
+```
+
+### II.1.2. Task 2 - [CartItem](oop-ts-shop/src/oop/CartItem.ts) Quantity Validation
+
+```ts
+// src/oop/CartItem.ts
+export class CartItem {
+    constructor(
+        private readonly _product: Product, // public -> private, product -> _product
+        private _quantity: number           // public -> private
+    )  { 
+        if (_quantity <= 0)
+            throw new Error("Quantity must be positive");
+    }
+        ...
+        increase(quantity: number): void { // allready exists
+        if (quantity <= 0)
+            throw new Error("Quantity must be positive");
+        }
+        ...
+        totalPrice(): number { // allready exists
+            return this._product.price * this._quantity; // product -> _product
+    }
+}
+```
+
+### II.1.3. Mandatory tasks
+
+To-do                                           | Status    | Reference
+:---                                            | :---:     | :---
+All class properties are private                | ✅        | [II.1.](#ii1-stage-1--class-sealing)
+Validation is implemented in constructors       | ✅        | [II.1.](#ii1-stage-1--class-sealing)
+No direct modification of the cart state        | ✅        | [II.1.2.](#ii12-task-2---cartitem-quantity-validation)
+
+### II.1.4. Additional tasks - add the possibility of a discount
+
+```ts
+// src/oop/Cart.ts
+...
+  discountedTotalPricePercent(percent: number): number {
+    if (percent < 0 || percent > 100) {
+      throw new Error("Percentage must be between 0 and 100");
+    }
+    const total = this.totalPrice();
+    return total - (total * percent / 100);
+  }
+```
+
+### II.1.5. Test the new method
+
+```ts
+// tests/cart.test.ts
+...
+    describe("Lab II - Encapsulation & Validation", () => {
+        // <II.1.1.>
+        it("should throw error for invalid product data", () => {
+            expect(() => new Product("", "Laptop", 4500)).toThrow(); 
+            expect(() => new Product("1", "Laptop", -100)).toThrow(); 
+        });
+        // </II.1.1.>
+
+        // <II.1.2.>
+        it("should throw error for non-positive quantity", () => {
+            const cart = new Cart();
+            const p = new Product("1", "Laptop", 3000);
+            expect(() => cart.add(p, 0)).toThrow("Quantity must be positive");
+        });
+        // </II.1.2.>
+
+        // <II.1.4.>
+        it("should calculate price with discount correctly", () => {
+            const cart = new Cart();
+            cart.add(new Product("1", "Laptop", 1000), 1);
+            expect(cart.discountedTotalPricePercent(20)).toBe(800); 
+        });
+        // </II.1.4.>
+    });
+```
+
+### II.1.6. Run the tests
+
+```bash
+npx vitest
+```
+
+### II.1.7. Expected Output
+
+```bash
+ ✓ tests/cart.test.ts (4 tests) 5ms
+   ✓ Cart (4)
+     ✓ adds products correctly 2ms
+     ✓ Lab II - Encapsulation & Validation (3)
+       ✓ should throw error for invalid product data 1ms
+       ✓ should throw error for non-positive quantity 0ms
+       ✓ should calculate price with discount correctly 0ms
+       ...
+```

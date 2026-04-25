@@ -33,4 +33,14 @@ export class Cart {
     return this.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   }
   // </Lab I.5.1.>
+  
+    // <Lab II.1.4>
+  discountedTotalPricePercent(percent: number): number {
+    if (percent < 0 || percent > 100) {
+      throw new Error("Percentage must be between 0 and 100");
+    }
+    const total = this.totalPrice();
+    return total - (total * percent / 100);
+  }
+  // </Lab II.1.4>
 }
