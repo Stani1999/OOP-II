@@ -543,7 +543,7 @@ npx vitest
 
 ## II.2. Stage 2. Implementation of the Repository Pattern
 
-## II.2.0. Create Abstraction project structure
+### II.2.0. Create Abstraction project structure
 
 ```bash
 touch tests/listProducts.test.ts         ## tests/listProducts.test.ts
@@ -804,5 +804,240 @@ npx vitest tests/listProducts.test.ts
 
  Test Files  1 passed (1)
       Tests  2 passed (2)
+      ...
+```
+
+---
+
+## **Lab III:  Value Objects**
+
+## III.1. Money Domain Model
+
+### III.1.0. Create structure for Value Object
+
+```bash
+                                ## src/ 
+                                ## ├── domain/
+touch src/domain/Money.ts       ## │   └── Money.ts
+touch src/domain/Currency.ts    ## │   └── Currency.ts
+touch tests/money.test.ts       ## tests/money.test.ts
+```
+
+### III.1.1. Step 1. Create [Value Object](oop-ts-shop/src/domain/Money.ts)
+
+```ts
+// src/domain/Money.ts
+export class Money {
+    private readonly _amount: number;
+    private readonly _currency: string;
+
+    constructor(amount: number, currency: string = "PLN") {
+        if (amount < 0) 
+            throw new Error("Amount cannot be negative");
+        
+        this._amount = amount;
+        this._currency = currency;
+    }
+
+    get amount(): number {
+        return this._amount
+    }
+
+    get currency(): string {
+        return this._currency
+    }
+
+    add(other: Money): Money {
+        this.assertSameCurrency(other);
+        return new Money(this._amount + other._amount, this._currency);
+    }
+
+    multiply(factor: number): Money {
+        return new Money(this._amount * factor, this._currency);
+    }
+
+    format(): string {
+        return `${(this._amount / 100).toFixed(2)} ${this._currency}`;
+    }
+
+    private assertSameCurrency(other: Money): void {
+        if (this._currency !== other._currency) {
+            throw new Error("Currency mismatch");
+        }
+    }
+}
+```
+
+### III.1.2. Step 2. Integrate [Money](oop-ts-shop/src/domain/Money.ts) with [Cart](oop-ts-shop/src/oop/Cart.ts)
+
+```ts
+// src/oop/Cart.ts
+import { Money } from "../domain/Money";                    // Add import for Money
+...
+  totalPrice(): Money {                                     //  number -> Money
+    return this.items.reduce(
+      (sum, item) => 
+//  Comment out or delete old implementation using numbers bellow and replace with Money operations:   
+      sum.add(item.product.price.multiply(item.quantity)),  // totalPrice()
+    new Money(0)
+  ); 
+  ...
+      return total.multiply((100 - percent) / 100);         // discountedTotalPricePercent()
+  }
+```
+
+```ts
+// src/oop/Product.ts
+import { Money } from "../domain/Money";    // Add import line for Money
+...
+    private _price:Money;                   // number -> Money:
+    ... 
+        this._price = new Money(price);     // price -> new Money(price)
+        ...
+    get price(): Money {                    // number -> Money:  
+    ...             
+}
+```
+
+### III.1.3. Step 3. Write tests for [Money](oop-ts-shop/tests/money.test.ts)
+
+```ts
+// src/tests/money.test.ts
+import { describe, it, expect } from "vitest";
+import { Money } from "../src/domain/Money";
+
+describe("Money", () => {
+    it("adds correctly", () => {
+        const a = new Money(1000);
+        const b = new Money(500);
+        const result = a.add(b);
+        
+        expect(result.amount).toBe(1500);
+    });
+
+    it ("multiplies mismatch", () => {
+        const a = new Money(1000, "PLN");
+        const b = new Money(500, "USD");
+
+        expect(() => a.add(b)).toThrow("Currency mismatch");
+    });
+});
+```
+
+## III.2. Value Objects - Tests
+
+### III.2. Run the tests
+
+```bash
+npx vitest tests/money.test.ts
+```
+
+### III.2.2. Expected Test Output
+
+```bash
+ ✓ tests/money.test.ts (2 tests) 4ms
+   ✓ Money (2)
+     ✓ adds correctly 2ms
+     ✓ multiplies mismatch 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+      ...
+```
+
+### III.2.3. Mandatory task
+
+To-do                   | Status    | Reference
+:---                    | :---:     | :---
+Money is immutable      | ✅        | [III.1.1.](#iii11-step-1-create-value-object)
+
+## III.3. Additional tasks Value Objects
+
+### III.3.1. Add equls() method to [Money](oop-ts-shop/src/domain/Money.ts)
+
+```ts
+// src/domain/Money.ts
+...
+    equals(other: Money): boolean {
+        return this._amount === other._amount && this._currency === other._currency;
+    }
+    ...
+```
+
+### III.3.2. [Currency](oop-ts-shop/src/domain/Currency.ts) as union type "PLN" | "EUR" | "USD"
+
+```ts
+// src/domain/Currency.ts
+export type Currency = "PLN" | "EUR" | "USD";
+```
+
+### III.3.3. Integrate [Currency](oop-ts-shop/src/domain/Currency.ts) with [Money](oop-ts-shop/src/domain/Money.ts)
+
+```ts
+// src/domain/Money.ts
+import { Currency } from "./Currency";                          // Import for Currency
+...
+    private readonly _currency: Currency;                       // string -> Currency
+    ...
+    constructor(amount: number, currency: Currency = "PLN") {   // string -> Currency
+    ...
+    get currency(): Currency {                                  // string -> Currency
+    ...
+    }
+}
+```
+
+### III.3.4. Step 4. Value Object [Testing](oop-ts-shop/tests/money.test.ts)
+
+```ts
+// src/tests/money.test.ts
+    ...
+    it("should return true for identical money values (equals method)", () => {
+        const a = new Money(99, "PLN");
+        const b = new Money(99, "PLN");
+        
+        expect(a.equals(b)).toBe(true); 
+    });
+
+        it("should allow creating money only with valid currencies (Union Type)", () => {
+        const pln = new Money(21, "PLN");
+        const eur = new Money(37, "EUR");
+        const usd = new Money(97, "USD");
+
+        expect(pln.currency).toBe("PLN");
+        expect(eur.currency).toBe("EUR");
+        expect(usd.currency).toBe("USD");
+    });
+
+    it("should return false for different amounts or currencies (equals method)", () => {
+        const a = new Money(69, "PLN");
+        const b = new Money(67, "PLN");
+        const c = new Money(69, "USD");
+
+        expect(a.equals(b)).toBe(false); 
+        expect(a.equals(c)).toBe(false); 
+    });
+    ...
+```
+
+### III.3.5. Run the tests
+
+```bash
+npx vitest tests/money.test.ts
+```
+
+### III.3.6. Expected Test Output
+
+```bash
+ ✓ tests/money.test.ts (5 tests) 4ms
+   ✓ Money (5)
+     ✓ adds correctly 2ms
+     ✓ multiplies mismatch 1ms
+     ✓ should return true for identical money values (equals method) 0ms
+     ✓ should allow creating money only with valid currencies (Union Type) 0ms
+     ✓ should return false for different amounts or currencies (equals method) 0ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
       ...
 ```
