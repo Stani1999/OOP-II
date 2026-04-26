@@ -6,14 +6,14 @@ This repository contains educational projects for the **Object-Oriented Programm
 
 ## I.1. Stage 1. Configuration
 
-### I.1.0. Operating System
+### I.1.0. In code description
 
-```bash
-Distributor ID: Linuxmint
-Description:    Linux Mint 22.3
-Release:        22.3
-Codename:       zena
-```
+**Label**           | **Description**
+:---                | :---
+**`Lab X.Y.Z.`**    | File created or refactored during X.Y.Z. task
+**`<X.Y.Z.>`**      | Start of code change related to X.Y.Z.
+**`</X.Y.Z.>`**     | End of code change related to X.Y.Z.
+**`<X.Y.Z./>`**     | Single line code change related to X.Y.Z.
 
 ### I.1.1. Project Setup
 
@@ -238,7 +238,7 @@ export class Cart {
 ### I.3.4. Step 4. Use in [index.ts](oop-ts-shop/src/index.ts) 
 
 ```ts
-// src/index.ts in OOP style
+// src/index.ts in OOP style (comment out or delete procedural code)
 import { Product } from "./oop/Product";
 import { Cart } from "./oop/Cart";
 
@@ -375,7 +375,7 @@ console.log("Total items after removal:", cart.totalItems());
 ```ts
 // src/index.ts
 ...
-const cart = new Cart(); // already exists
+const cart = new Cart(); // Already exists
 ...
 
 const cart2 = new Cart();
@@ -409,7 +409,6 @@ Is a class without methods OOP?         | No; **true OOP** requires grouping dat
 Does OOP increase performance?          | Generally no; it prioritizes developer productivity and code maintainability over raw execution speed
 What is gained by multiple instances?   | It allows for independent internal states and allows for modeling multiple real entities separately
 
-
 ---
 
 ## **Lab II: Encapsulation**
@@ -419,7 +418,7 @@ What is gained by multiple instances?   | It allows for independent internal sta
 ### II.1.1. Task 1 - [Product](oop-ts-shop/src/oop/Product.ts) Validation
 
 ```ts
-// src/oop/Product.ts
+// src/oop/Product.ts (comment out or delete old code and replace with this)
 export class Product {
     private readonly _id:string;
     private _name:string;
@@ -462,12 +461,12 @@ export class CartItem {
             throw new Error("Quantity must be positive");
     }
         ...
-        increase(quantity: number): void { // allready exists
+        increase(quantity: number): void { // Already exists
         if (quantity <= 0)
             throw new Error("Quantity must be positive");
         }
         ...
-        totalPrice(): number { // allready exists
+        totalPrice(): number { // Already exists
             return this._product.price * this._quantity; // product -> _product
     }
 }
@@ -477,11 +476,11 @@ export class CartItem {
 
 To-do                                           | Status    | Reference
 :---                                            | :---:     | :---
-All class properties are private                | ✅        | [II.1.](#ii1-stage-1--class-sealing)
-Validation is implemented in constructors       | ✅        | [II.1.](#ii1-stage-1--class-sealing)
+All class properties are private                | ✅        | [II.1.](#ii1-stage-1-class-sealing)
+Validation is implemented in constructors       | ✅        | [II.1.](#ii1-stage-1-class-sealing)
 No direct modification of the cart state        | ✅        | [II.1.2.](#ii12-task-2---cartitem-quantity-validation)
 
-### II.1.4. Additional tasks - add the possibility of a discount
+### II.1.4. Additional task - add the possibility of a discount
 
 ```ts
 // src/oop/Cart.ts
@@ -495,34 +494,29 @@ No direct modification of the cart state        | ✅        | [II.1.2.](#ii12-t
   }
 ```
 
-### II.1.5. Test the new method
+### II.1.5. Test the new [method](oop-ts-shop/src/oop/Cart.ts) in the tests
 
 ```ts
 // tests/cart.test.ts
 ...
     describe("Lab II - Encapsulation & Validation", () => {
-        // <II.1.1.>
+
         it("should throw error for invalid product data", () => {
             expect(() => new Product("", "Laptop", 4500)).toThrow(); 
             expect(() => new Product("1", "Laptop", -100)).toThrow(); 
         });
-        // </II.1.1.>
 
-        // <II.1.2.>
         it("should throw error for non-positive quantity", () => {
             const cart = new Cart();
             const p = new Product("1", "Laptop", 3000);
             expect(() => cart.add(p, 0)).toThrow("Quantity must be positive");
         });
-        // </II.1.2.>
 
-        // <II.1.4.>
         it("should calculate price with discount correctly", () => {
             const cart = new Cart();
             cart.add(new Product("1", "Laptop", 1000), 1);
             expect(cart.discountedTotalPricePercent(20)).toBe(800); 
         });
-        // </II.1.4.>
     });
 ```
 
@@ -543,4 +537,272 @@ npx vitest
        ✓ should throw error for non-positive quantity 0ms
        ✓ should calculate price with discount correctly 0ms
        ...
+```
+
+## **Lab II: Abstraction & Repositories**
+
+## II.2. Stage 2. Implementation of the Repository Pattern
+
+## II.2.0. Create Abstraction project structure
+
+```bash
+touch tests/listProducts.test.ts         ## tests/listProducts.test.ts
+cd src                                   ## src/ 
+mkdir domain                             ## ├── domain/
+touch domain/IProductRepository.ts       ## │   └── IProductRepository.ts
+mkdir infra                              ## ├── infra/
+touch infra/InMemoryProductRepository.ts ## │   ├── InMemoryProductRepository.ts
+touch infra/FakeProductRepository.ts     ## │   └── FakeProductRepository.ts
+mkdir app                                ## └── app/
+touch app/ListProducts.ts                ##     └── ListProducts.ts
+```
+
+### II.2.1. Step 1. [Repository Interface](oop-ts-shop/src/domain/IProductRepository.ts)
+
+```ts
+// src/domain/IProductRepository.ts
+import { Product } from "../oop/Product";
+
+export interface IProductRepository {
+    getById(id: string): Promise<Product | null>;
+    list(): Promise<Product[]>;
+}
+```
+
+### II.2.2. Step 2. [In-Memory Repository Implementation](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+
+```ts
+// src/infra/InMemoryProductRepository.ts
+import { IProductRepository } from "../domain/IProductRepository";
+import { Product } from "../oop/Product";
+// import { Money } from "../domain/Money"; // "In terms of money, we have no money" (class yet)
+
+export class InMemoryProductRepository 
+    implements IProductRepository {
+
+    private products: Product[] = [
+        new Product("1", "Laptop", 300000), // 300000 instead of new Money(300000) 
+        new Product("2", "Mouse", 5000)     // 5000 instead of new Money(5000)
+    ];
+
+    async getById(id: string): Promise<Product | null> {
+        return this.products.find(p => p.id === id) ?? null;
+    }
+
+    async list(): Promise<Product[]> {
+        return this.products;
+    }
+}
+```
+
+### II.2.3. Step 3. [Use Case](oop-ts-shop/src/app/ListProducts.ts)
+
+```ts
+// src/app/ListProducts.ts
+import { IProductRepository } from "../domain/IProductRepository";
+
+export class ListProducts {
+    constructor(private readonly repo: IProductRepository) {}
+
+    async execute() {
+        return await this.repo.list();
+    }
+}
+```
+
+### II.2.4. Step 4. Use in [index.ts](oop-ts-shop/src/index.ts)
+
+```ts
+// src/index.ts
+...
+import { Cart } from "./oop/Cart"; // Already exists
+import { InMemoryProductRepository } from "./infra/InMemoryProductRepository";
+import { ListProducts } from "./app/ListProducts";
+
+async function main() {
+    const repo = new InMemoryProductRepository();
+    const listProducts = new ListProducts(repo);
+
+    const products = await listProducts.execute();
+
+    console.log(products)
+}
+
+main();
+...
+```
+
+### II.2.5. Run the code
+
+```bash
+npx ts-node ../src/index.ts
+```
+
+### II.2.6. Expected Output
+
+```bash
+...
+[
+  Product { _id: '1', _name: 'Laptop', _price: 300000 },
+  Product { _id: '2', _name: 'Mouse', _price: 5000 }
+]
+```
+
+### II.2.7. Write [listProducts](oop-ts-shop/tests/listProducts.test.ts) test
+
+```ts
+// src/tests/listProducts.test.ts
+import { describe, it, expect } from "vitest";
+import { InMemoryProductRepository } from "../src/infra/InMemoryProductRepository";
+import { ListProducts } from "../src/app/ListProducts";
+
+describe("ListProducts", () => {
+    it("returns products", async () => {
+
+        const repo = new InMemoryProductRepository();
+        const useCase = new ListProducts(repo);
+
+        const result = await useCase.execute();
+
+        expect(result.length).toBeGreaterThan(0);
+    });
+});
+```
+
+### II.2.8. Run the tests
+
+```bash
+cd .. ## go back to the root of the project
+npx vitest tests/listProducts.test.ts
+```
+
+### II.2.9. Expected Test Output
+
+```bash
+ ✓ tests/listProducts.test.ts (1 test) 2ms
+   ✓ ListProducts (1)
+     ✓ returns products 1ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
+```
+
+### II.2.10. Mandatory tasks
+
+To-do                                       | Status    | Reference
+:---                                        | :---:     | :---
+Repository interface exists                 | ✅        | [II.2.1.](#ii21-step-1-repository-interface)
+InMemory implementation exists              | ✅        | [II.2.2.](#ii22-step-2-in-memory-repository-implementation)
+Use-case is independent of implementation   | ✅        | [II.2.3.](#ii23-step-3-use-case)
+Use-case is covered by tests                | ✅        | [II.2.7.](#ii27-write-listproducts-test)
+
+### II.2.11. Additional task - Add a [FakeProductRepository](oop-ts-shop/src/infra/FakeProductRepository.ts) (for [testing](#ii214-testing-all-additional-features))
+
+```ts
+// src/infra/FakeProductRepository.ts 
+// Copy of InMemoryProductRepository with empty data 
+import { IProductRepository } from "../domain/IProductRepository";
+import { Product } from "../oop/Product";
+
+export class FakeProductRepository 
+    implements IProductRepository {
+    
+    private products: Product[] = [];
+    
+    async getById(id: string): Promise<Product | null> {
+        return this.products.find(p => p.id === id) ?? null;
+    }
+
+    async list(): Promise<Product[]> {
+        return this.products;
+    }
+} 
+```
+
+### II.2.12. Additional task - Add [create(product)](oop-ts-shop/src/domain/IProductRepository.ts) method
+
+```ts
+// src/domain/IProductRepository.ts
+...
+export interface IProductRepository { // Already exists
+    ...
+    create(product: Product): Promise<void>; 
+}
+```
+
+```ts
+// src/infra/InMemoryProductRepository.ts
+// src/infra/FakeProductRepository.ts
+    ...
+    implements IProductRepository { // Already exists
+    ...
+    async create(product: Product): Promise<void> {
+        this.products.push(product);
+    }
+} 
+```
+
+### II.2.13. Additional task - Introduce generics to [repository](oop-ts-shop/src/domain/IProductRepository.ts)
+
+```ts
+// src/domain/IProductRepository.ts
+...
+// Product replace with generic T
+// add <T = Product> to make it generic with default type Product
+export interface IProductRepository<T = Product> { 
+    list(): Promise<T[]>;
+    create(product: T): Promise<void>;
+}
+```
+
+```ts
+// src/infra/InMemoryProductRepository.ts
+// src/infra/FakeProductRepository.ts
+    ...
+    implements IProductRepository<Product> // add <Product>
+    ...
+```
+
+### II.2.14. [Testing](oop-ts-shop/tests/listProducts.test.ts) all additional features
+
+```ts
+// src/tests/listProducts.test.ts
+import { ListProducts } from "../src/app/ListProducts"; // Already exists
+import { FakeProductRepository } from "../src/infra/FakeProductRepository";
+import { Product } from "../src/oop/Product";
+
+describe("ListProducts - Additional Task Features", () => {
+    it("returns products added via create method (Testing FakeProductRepository, Create method and Generics)", async () => {
+        const geneRepo = new FakeProductRepository(); 
+        const geneUseCase = new ListProducts(geneRepo);
+        const geneProduct = new Product("1", "OLED TV", 300000); 
+
+        await geneRepo.create(geneProduct);
+        const geneResult = await geneUseCase.execute();
+
+        expect(geneResult).toContain(geneProduct);
+        expect(geneResult.length).toBe(1);
+    });
+});
+```
+
+### II.2.15. Run the tests
+
+```bash
+npx vitest tests/listProducts.test.ts
+```
+
+### II.2.16. Expected Test Output
+
+```bash
+ ✓ tests/listProducts.test.ts (2 tests) 4ms
+   ✓ ListProducts - Additional Task Features (1)
+     ✓ returns products added via create method (Testing FakeProductRepository, Create method and Generics) 2ms
+   ✓ ListProducts (1)
+     ✓ returns products 0ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+      ...
 ```

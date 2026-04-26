@@ -7,7 +7,7 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "Commonjs",           // from nodejs: "nodenext"
+    "module": "CommonJS",           // from nodejs: "nodenext"
     "target": "ES2020",             // from nodejs: "ESNext"
 
     "types": [],

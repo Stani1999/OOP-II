@@ -12,6 +12,21 @@ clearCart();
 //Lab I.3.4.
 import { Product } from "./oop/Product";
 import { Cart } from "./oop/Cart";
+// <Lab II.2.4.>
+import { InMemoryProductRepository } from "./infra/InMemoryProductRepository";
+import { ListProducts } from "./app/ListProducts";
+
+async function main() {
+    const repo = new InMemoryProductRepository();
+    const listProducts = new ListProducts(repo);
+
+    const products = await listProducts.execute();
+
+    console.log(products)
+}
+
+main();
+// </Lab II.2.4.>
 
 const cart = new Cart();
 const laptop = new Product("1","Laptop", 3000);

@@ -1,4 +1,4 @@
-// Lab I.3.3. Step 3.
+// Lab I.3.3.
 import { Product } from "./Product";
 import { CartItem } from "./CartItem";
 
