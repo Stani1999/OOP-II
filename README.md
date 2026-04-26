@@ -235,7 +235,7 @@ export class Cart {
 }
 ```
 
-### I.3.4. Step 4. Use in [index.ts](oop-ts-shop/src/index.ts) 
+### I.3.4. Step 4. Use in [index.ts](oop-ts-shop/src/index.ts)
 
 ```ts
 // src/index.ts in OOP style (comment out or delete procedural code)
@@ -818,7 +818,7 @@ npx vitest tests/listProducts.test.ts
 ```bash
                                 ## src/ 
                                 ## ├── domain/
-touch src/domain/Money.ts       ## │   └── Money.ts
+touch src/domain/Money.ts       ## │   ├── Money.ts
 touch src/domain/Currency.ts    ## │   └── Currency.ts
 touch tests/money.test.ts       ## tests/money.test.ts
 ```
@@ -1041,3 +1041,351 @@ npx vitest tests/money.test.ts
       Tests  5 passed (5)
       ...
 ```
+
+## **Lab IV: Inheritance vs. Composition**
+
+## IV.1. Refactoring to composition
+
+### IV.1.0. Create structure for composition
+
+```bash
+touch tests/product.test.ts                     ## tests/product.test.ts
+                                                ## src/
+touch src/indexComp.ts                          ## ├── indexComp.ts (New file for testing composition version)
+                                                ## └── oop/
+mkdir src/oop/products                          ##     └── products/
+touch src/oop/products/Product.ts               ##         ├── Product.ts (new version)
+touch src/oop/products/ProductFeature.ts        ##         ├── ProductFeature.ts
+touch src/oop/products/ShippingFeature.ts       ##         ├── ShippingFeature.ts
+touch src/oop/products/DownloadFeature.ts       ##         ├── DownloadFeature.ts
+touch src/oop/products/SubscriptionFeature.ts   ##         └── SubscriptionFeature.ts
+touch src/oop/products/ReturnPolicyFeature.ts   ##         └── ReturnPolicyFeature.ts
+```
+
+### IV.1.1. Step 1. [Product](oop-ts-shop/src/oop/products/Product.ts) new Product as Aggregate
+
+```ts
+// src/oop/products/Product.ts (new version)
+export class Product 
+{
+    constructor(
+        public readonly id:string,
+        public readonly name:string,
+        public readonly features: ProductFeature[] = []
+    ) {}
+}
+```
+
+### IV.1.2. Step 2. [Feature](oop-ts-shop/src/oop/products/ProductFeature.ts) interface
+
+```ts
+// src/oop/products/ProductFeature.ts
+export interface ProductFeature {}
+```
+
+### IV.1.3. Step 3. [Feature: Shipping](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+
+```ts
+// src/oop/products/ShippingFeature.ts
+import { ProductFeature } from "./ProductFeature"; // Import by VSCode after clicking on ProductFeature
+
+export class ShippingFeature implements ProductFeature {
+    constructor( 
+    public readonly weight: number
+    ) {}
+}
+```
+
+### IV.1.4. Step 4. [Feature: Download](oop-ts-shop/src/oop/products/DownloadFeature.ts)
+
+```ts
+// src/oop/products/DownloadFeature.ts
+import { ProductFeature } from "./ProductFeature"; // Import by VSCode after typing "implements Pr.." end press enter
+
+export class DownloadFeature implements ProductFeature {
+    constructor(
+        public readonly url: string
+    ) {}
+}
+```
+
+### IV.1.5. Step 5. [Feature: Subscription](oop-ts-shop/src/oop/products/SubscriptionFeature.ts)
+
+```ts
+// src/oop/products/SubscriptionFeature.ts
+import { ProductFeature } from "./ProductFeature"; // Import by VSCode after typing "implements Pr.." end press enter
+
+export class SubscriptionFeature implements ProductFeature {
+    constructor(
+        public readonly durationInDays: number
+    ) {}
+}
+```
+
+## IV.2. Use composition structure
+
+### IV.2.0. Fix [Product](oop-ts-shop/src/oop/products/Product.ts) to avoid error TS2304: Cannot find name 'ProductFeature'
+
+```ts
+// src/oop/products/Product.ts 
+import { ProductFeature } from "./ProductFeature";  // Add Import line for ProductFeature
+...
+```
+
+### IV.2.1. Use in [indexComp.ts](oop-ts-shop/src/indexComp.ts)
+
+```ts
+// src/indexComp.ts
+import { Product } from "./oop/products/Product";
+import { DownloadFeature } from "./oop/products/DownloadFeature";
+import { ShippingFeature } from "./oop/products/ShippingFeature";
+import { SubscriptionFeature } from "./oop/products/SubscriptionFeature";
+
+const product = new Product("1","Game Bundle", [
+    new DownloadFeature("url"),
+    new ShippingFeature(1.2),
+    new SubscriptionFeature(30)
+]);
+
+console.log(product); // To verify the structure
+```
+
+### IV.2.2. Run the code
+
+```bash
+npx ts-node src/indexComp.ts
+```
+
+### IV.2.3. Expected Output
+
+```bash
+Product {
+  id: '1',
+  name: 'Game Bundle',
+  features: [
+    DownloadFeature { url: 'url' },
+    ShippingFeature { weight: 1.2 },
+    SubscriptionFeature { durationInDays: 30 }
+  ]
+}
+```
+
+## IV.3. Helper methods
+
+### IV.3.1. Add helper methods to [Product](oop-ts-shop/src/oop/products/Product.ts)
+
+```ts
+    getFeature<T>(type: new (...args: any[]) => T): T | undefined {
+        return this.features.find(f => f instanceof type) as T;
+    }
+```
+
+### IV.3.2. Use helper method in [indexComp.ts](oop-ts-shop/src/indexComp.ts)
+
+```ts
+...
+// Use:
+const shipping = product.getFeature(ShippingFeature);
+
+if (shipping) {
+    console.log(shipping.weight);
+}
+```
+
+### IV.3.3. Run the code
+
+```bash
+npx ts-node src/indexComp.ts
+```
+
+### IV.3.4. Expected Output
+
+```bash
+...
+1.2
+```
+
+## VI.4. Testing composition
+
+### IV.4.1. Write tests for [Product](oop-ts-shop/tests/product.test.ts)
+
+```ts
+// src/tests/product.test.ts
+import { describe, it, expect } from "vitest";
+import { Product } from "../src/oop/products/Product";
+import { ShippingFeature } from "../src/oop/products/ShippingFeature";
+
+describe("Product features", () => {
+    it("supports multiple features:", () => {
+        const product = new Product("1", "Test", [
+            new ShippingFeature(2)
+        ]);
+
+        const shipping = product.getFeature(ShippingFeature);
+
+        expect(shipping?.weight).toBe(2);
+    });
+});
+```
+
+### IV.4.2. Run the tests
+
+```bash
+npx vitest tests/product.test.ts
+```
+
+### IV.4.3. Expected Test Output
+
+```bash
+ ✓ tests/product.test.ts (1 test) 3ms
+   ✓ Product features (1)
+     ✓ supports multiple features: 2ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
+```
+
+## IV.5. Additional tasks
+
+### IV.5.1. Add [ReturnPolicyFeature](oop-ts-shop/src/oop/products/ReturnPolicyFeature.ts)
+
+```ts
+// src/oop/products/ReturnPolicyFeature.ts
+import { ProductFeature } from "./ProductFeature";
+
+export class ReturnPolicyFeature implements ProductFeature
+{
+    constructor(
+        public readonly returnPeriodInDays: number
+    ) {
+
+    }
+}
+```
+
+### IV.5.2. Add [`getFeatures<T>()`](oop-ts-shop/src/oop/products/Product.ts) (list instead of single item)
+
+```ts
+// src/oop/products/Product.ts
+    ...
+    getFeature<T>(type: new (...args: any[]) =>T): T[] | undefined {// T -> T[]
+        return this.features.filter                                 // find -> filter
+        (f => f instanceof type) as T[];                            // T -> T[]  
+    }
+    ...
+```
+
+### IV.5.3. Make [validation](oop-ts-shop/src/oop/products/ProductFeature.ts)
+
+* [Product](oop-ts-shop/src/oop/products/Product.ts) cannot have two [ShippingFeatures](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+
+```ts
+// src/oop/products/ProductFeature.ts
+...{
+    readonly isUnique: boolean;  // For validation purposes
+}
+```
+
+```ts
+// src/oop/products/ShippingFeature.ts
+...
+export class ShippingFeature implements ProductFeature { // Already exists
+    readonly isUnique = true; // <IV.5.3.> To avoid duplicates
+    ...
+}
+```
+
+### IV.5.4. Integrate validation in others features
+
+```ts
+// src/oop/products/DownloadFeature.ts
+// src/oop/products/SubscriptionFeature.ts
+// src/oop/products/ReturnPolicyFeature.ts
+
+// In rest of the ProductFeatures set isUnique as:
+    ... implements ProductFeature {
+    readonly isUnique = false; // To allow duplicates
+    // or
+    readonly isUnique = true;  // To avoid duplicates 
+    ...
+}
+```
+
+## IV.6. Testing of composition
+
+### VI.6.0. Integrate new Feature in [indexComp.ts](oop-ts-shop/src/indexComp.ts) and [test](oop-ts-shop/tests/product.test.ts) for product
+
+```ts
+// src/indexComp.ts
+    ...
+    console.log(shipping?.[0]?.weight); // .weight -> ?.[0]?.weight
+    ...
+```
+
+```ts
+// src/tests/product.test.ts
+        ...
+        expect(shipping?.[0]?.weight).toBe(2); // <IV.5.6/> weight -> [0]?.weight
+        ...
+```
+
+### IV.6.1. Add validation in [Product](oop-ts-shop/src/oop/products/Product.ts)
+
+```ts
+// src/oop/products/Product.ts
+    ...
+    {
+        // Validation for unique features
+        const uniqueFeatures = features.filter(f => f.isUnique);
+        const uniqueFeatureTypes = new Set(uniqueFeatures.map(f => f.constructor));
+
+        const hasDuplicates = uniqueFeatures.length !== uniqueFeatureTypes.size; 
+        if (hasDuplicates) {
+            throw new Error("Product cannot have duplicate unique features."); 
+        }
+    }
+    ...   
+```
+
+### IV.6.2. [Test](oop-ts-shop/tests/product.test.ts) validation
+
+```ts
+// src/tests/product.test.ts
+...
+    it("should not allow duplicate unique features", () => {
+        expect(() => new Product("1", "Test", [
+            new ShippingFeature(2),
+            new ShippingFeature(3) // Duplicate unique feature
+        ])).toThrow("Product cannot have duplicate unique features.");
+    });
+...
+```
+
+### IV.6.3. Run the tests
+
+```bash
+npx vitest tests/product.test.ts
+```
+
+### IV.6.4. Expected Test Output
+
+```bash
+ ✓ tests/product.test.ts (2 tests) 4ms
+   ✓ Product features (2)
+     ✓ supports multiple features: 2ms
+     ✓ should not allow duplicate unique features 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+      ...
+```
+
+### IV.6.5. Discussion
+
+Question                                            | Answer
+:---                                                | :---
+**When is inheritance OK?**                         | When an object is derived from a base object (an *is-a* relationship)
+**Why is composition more flexible?**               | Because it doesn't depend on conditional statements of standard fields and allows for dynamic assembly of objects from "blocks" (features)
+**Can both approaches be combined?**                | Yes, for complex problems it is even necessary to ensure technical consistency and hierarchy while maintaining flexibility
+**What would happen with 10 types of products?**    | The number of combinations would be too large to quickly and efficiently create the appropriate object using class inheritance (class explosion)

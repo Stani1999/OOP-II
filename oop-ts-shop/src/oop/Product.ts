@@ -1,3 +1,4 @@
+
 /* Lab I.3.1.
 export class Product {
     constructor(
@@ -7,7 +8,8 @@ export class Product {
     ) {}
 }
 */
-// Lab II.1.1.
+// Lab II.1.1. ! After IV.1. this Version is outdated !
+
 import { Money } from "../domain/Money";    // <III.1.2./> add import line for Money
 
 export class Product {
