@@ -10,6 +10,7 @@ clearCart();
 */
 
 //Lab I.3.4.
+import { Money } from "./domain/Money";                         // <III.1.2./>
 import { Product } from "./oop/Product";
 import { Cart } from "./oop/Cart";
 // <Lab II.2.4.>
@@ -29,7 +30,7 @@ main();
 // </Lab II.2.4.>
 
 const cart = new Cart();
-const laptop = new Product("1","Laptop", 3000);
+const laptop = new Product("1","Laptop", new Money(3000));      //  <III.1.2./> 3000 -> new Money(3000)
 
 
 cart.add(laptop, 2);
@@ -57,7 +58,7 @@ console.log("Total items after removal:", cart.totalItems());
 
 // <Lab I.5.4.>
 const cart2 = new Cart();
-const phone = new Product("2","Nokia 3310", 100);
+const phone = new Product("2","Nokia 3310", new Money(100));    // <III.1.2./> 100 -> new Money(100)
 cart2.add(phone, 1);
 console.log("Cart 2 total items:", cart2.totalItems());
 // </Lab I.5.4.>

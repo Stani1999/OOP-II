@@ -14,19 +14,19 @@ This repository contains educational projects for the **Object-Oriented Programm
 **`<X.Y.Z.>`**      | Start of code change related to X.Y.Z.
 **`</X.Y.Z.>`**     | End of code change related to X.Y.Z.
 **`<X.Y.Z./>`**     | Single line code change related to X.Y.Z.
-
+ 
 ### I.1.1. Project Setup
 
 ```bash
 ## Create and enter the new directory for the project
-mkdir oop-ts-shop
+mkdir -p oop-ts-shop
 cd oop-ts-shop
 
 ## Initialize a new Node.js project and install necessary dependencies
-npm init -y              ## Creates package.json
+npm init -y                                         ## Creates package.json
 npm install -D typescript ts-node @types/node
 npm install -D vitest    
-npx tsc --init           ## Creates tsconfig.json
+npx tsc --init                                      ## Creates tsconfig.json
 ```
 
 ### I.1.2. Modify [`tsconfig.json`](oop-ts-shop/tsconfig.json)
@@ -58,11 +58,11 @@ npx tsc --init           ## Creates tsconfig.json
 ### I.1.3. Create Project Structure
 
 ```bash
-mkdir src               ##  src/  
-touch src/index.ts      ##  ├── index.ts     
-mkdir src/procedural    ##  ├── procedural/  
-mkdir src/oop           ##  └── oop/        
-mkdir tests             ##  tests/ 
+mkdir -p src                                        ##  src/  
+touch src/index.ts                                  ##  ├── index.ts     
+mkdir -p src/procedural                             ##  ├── procedural/  
+mkdir -p src/oop                                    ##  └── oop/        
+mkdir -p tests                                      ##  tests/ 
 ```
 
 ## I.2. Stage 2. Procedural Programming
@@ -168,11 +168,11 @@ Are data and functions logically connected? | Only loosely, they are in the same
 ### I.3.0. Create OOP project structure
 
 ```bash
-                            ## src/ 
-                            ## └── oop/
-touch src/oop/Product.ts    ##     ├── Product.ts      
-touch src/oop/CartItem.ts   ##     ├── CartItem.ts       
-touch src/oop/Cart.ts       ##     └── Cart.ts
+                                                    ## src/ 
+                                                    ## └── oop/
+touch src/oop/Product.ts                            ##     ├── Product.ts      
+touch src/oop/CartItem.ts                           ##     ├── CartItem.ts       
+touch src/oop/Cart.ts                               ##     └── Cart.ts
 ```
 
 ### I.3.1. Step 1. [Product](oop-ts-shop/src/oop/Product.ts) Class
@@ -454,20 +454,20 @@ export class Product {
 // src/oop/CartItem.ts
 export class CartItem {
     constructor(
-        private readonly _product: Product, // public -> private, product -> _product
-        private _quantity: number           // public -> private
+        private readonly _product: Product,                 // public -> private, product -> _product
+        private _quantity: number                           // public -> private
     )  { 
         if (_quantity <= 0)
             throw new Error("Quantity must be positive");
     }
         ...
-        increase(quantity: number): void { // Already exists
+        increase(quantity: number): void {                  // Already exists
         if (quantity <= 0)
             throw new Error("Quantity must be positive");
         }
         ...
-        totalPrice(): number { // Already exists
-            return this._product.price * this._quantity; // product -> _product
+        totalPrice(): number {                              // Already exists
+            return this._product.price * this._quantity;    // product -> _product
     }
 }
 ```
@@ -546,15 +546,15 @@ npx vitest
 ### II.2.0. Create Abstraction project structure
 
 ```bash
-touch tests/listProducts.test.ts         ## tests/listProducts.test.ts
-cd src                                   ## src/ 
-mkdir domain                             ## ├── domain/
-touch domain/IProductRepository.ts       ## │   └── IProductRepository.ts
-mkdir infra                              ## ├── infra/
-touch infra/InMemoryProductRepository.ts ## │   ├── InMemoryProductRepository.ts
-touch infra/FakeProductRepository.ts     ## │   └── FakeProductRepository.ts
-mkdir app                                ## └── app/
-touch app/ListProducts.ts                ##     └── ListProducts.ts
+cd src                                              ## src/ 
+mkdir -p domain                                     ## ├── domain/
+touch domain/IProductRepository.ts                  ## │   └── IProductRepository.ts
+mkdir -p infra                                      ## ├── infra/
+touch infra/InMemoryProductRepository.ts            ## │   ├── InMemoryProductRepository.ts
+touch infra/FakeProductRepository.ts                ## │   └── FakeProductRepository.ts
+mkdir -p app                                        ## └── app/
+touch app/ListProducts.ts                           ##     └── ListProducts.ts
+touch tests/listProducts.test.ts                    ## tests/listProducts.test.ts
 ```
 
 ### II.2.1. Step 1. [Repository Interface](oop-ts-shop/src/domain/IProductRepository.ts)
@@ -569,7 +569,7 @@ export interface IProductRepository {
 }
 ```
 
-### II.2.2. Step 2. [In-Memory Repository Implementation](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+### II.2.2. Step 2. [In-MemoryRepository Implementation](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
 
 ```ts
 // src/infra/InMemoryProductRepository.ts
@@ -581,8 +581,8 @@ export class InMemoryProductRepository
     implements IProductRepository {
 
     private products: Product[] = [
-        new Product("1", "Laptop", 300000), // 300000 instead of new Money(300000) 
-        new Product("2", "Mouse", 5000)     // 5000 instead of new Money(5000)
+        new Product("1", "Laptop", 300000),  // Only before Lab III: 300000 instead of new Money(300000)
+        new Product("2", "Mouse", 5000)      // Only before Lab III: 5000 instead of new Money(5000)
     ];
 
     async getById(id: string): Promise<Product | null> {
@@ -693,7 +693,7 @@ npx vitest tests/listProducts.test.ts
 To-do                                       | Status    | Reference
 :---                                        | :---:     | :---
 Repository interface exists                 | ✅        | [II.2.1.](#ii21-step-1-repository-interface)
-InMemory implementation exists              | ✅        | [II.2.2.](#ii22-step-2-in-memory-repository-implementation)
+InMemory implementation exists              | ✅        | [II.2.2.](#ii22-step-2-in-memoryrepository-implementation)
 Use-case is independent of implementation   | ✅        | [II.2.3.](#ii23-step-3-use-case)
 Use-case is covered by tests                | ✅        | [II.2.7.](#ii27-write-listproducts-test)
 
@@ -816,11 +816,12 @@ npx vitest tests/listProducts.test.ts
 ### III.1.0. Create structure for Value Object
 
 ```bash
-                                ## src/ 
-                                ## ├── domain/
-touch src/domain/Money.ts       ## │   ├── Money.ts
-touch src/domain/Currency.ts    ## │   └── Currency.ts
-touch tests/money.test.ts       ## tests/money.test.ts
+                                                    ## src/ 
+                                                    ## └── domain/
+touch src/domain/Money.ts                           ##     ├── Money.ts
+touch src/domain/Currency.ts                        ##     └── Currency.ts
+                                                    ## tests/ 
+touch tests/money.test.ts                           ## └── money.test.ts
 ```
 
 ### III.1.1. Step 1. Create [Value Object](oop-ts-shop/src/domain/Money.ts)
@@ -868,35 +869,81 @@ export class Money {
 }
 ```
 
-### III.1.2. Step 2. Integrate [Money](oop-ts-shop/src/domain/Money.ts) with [Cart](oop-ts-shop/src/oop/Cart.ts)
+### III.1.2. Step 2. Integrate [Money](oop-ts-shop/src/domain/Money.ts) Value Object
+
+* In [Cart](oop-ts-shop/src/oop/Cart.ts)
 
 ```ts
 // src/oop/Cart.ts
 import { Money } from "../domain/Money";                    // Add import for Money
-...
+  ...
   totalPrice(): Money {                                     //  number -> Money
     return this.items.reduce(
       (sum, item) => 
-//  Comment out or delete old implementation using numbers bellow and replace with Money operations:   
-      sum.add(item.product.price.multiply(item.quantity)),  // totalPrice()
+      sum.add(item.product.price.multiply(item.quantity)),  // in totalPrice() instead of sum + item.product.price * item.quantity, 0);
     new Money(0)
   ); 
-  ...
-      return total.multiply((100 - percent) / 100);         // discountedTotalPricePercent()
+    ...
+    discountedTotalPricePercent(percent: number): Money {   // number -> Money
+    ...
+      return total.multiply((100 - percent) / 100);         // in discountedTotalPricePercent() instead of return total - (total * percent / 100);
   }
+}
 ```
+
+* In [CartItem](oop-ts-shop/src/oop/CartItem.ts)
+
+```ts
+import { Money } from "../domain/Money";
+    ...
+    // Commented out old or replace implementation using numbers
+    // totalPrice(): number {
+    //     return this._product.price * this._quantity; // <II.1.2./> product -> _product 
+    totalPrice(): Money {
+        return new Money(this._product.price.amount * this._quantity); // 
+    }
+    ...
+```
+
+* In [Product](oop-ts-shop/src/oop/Product.ts)
 
 ```ts
 // src/oop/Product.ts
-import { Money } from "../domain/Money";    // Add import line for Money
-...
-    private _price:Money;                   // number -> Money:
-    ... 
-        this._price = new Money(price);     // price -> new Money(price)
-        ...
-    get price(): Money {                    // number -> Money:  
-    ...             
+import { Money } from "../domain/Money";
+    ...
+    private _price: Money;                                          // number -> Money                 
+
+    constructor(id:string, name:string, price:Money) {              // number -> Money
+        if (price.amount < 0) throw new Error("Product price cannot be negative");  
+    ...
+    this._price = new Money(price.amount);                          // price -> new Money(price)
+    ...
+    get price(): Money {                                            // number -> Money
+    ...
+    }
 }
+```
+
+* In [InMemoryProductRepository](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+
+```ts
+// src/infra/InMemoryProductRepository.ts
+import { Money } from "../domain/Money";
+        ...
+        new Product("1", "Laptop", new Money(300000)),              // 300000 -> new Money(300000)
+        new Product("2", "Mouse", new Money(5000))                  // 5000 -> new Money(5000)
+        ...
+```
+
+* In [intex.ts](oop-ts-shop/src/index.ts)
+
+```ts
+import { Money } from "./domain/Money";                      
+    ...
+    const laptop = new Product("1","Laptop", new Money(3000));      //  <III.1.2./> 3000 -> new Money(3000)
+    ...
+    const phone = new Product("2","Nokia 3310", new Money(100));    // <III.1.2./> 100 -> new Money(100)
+    ...
 ```
 
 ### III.1.3. Step 3. Write tests for [Money](oop-ts-shop/tests/money.test.ts)
@@ -926,7 +973,7 @@ describe("Money", () => {
 
 ## III.2. Value Objects - Tests
 
-### III.2. Run the tests
+### III.2.1. Run the tests
 
 ```bash
 npx vitest tests/money.test.ts
@@ -1049,17 +1096,18 @@ npx vitest tests/money.test.ts
 ### IV.1.0. Create structure for composition
 
 ```bash
-touch tests/product.test.ts                     ## tests/product.test.ts
-                                                ## src/
-touch src/indexComp.ts                          ## ├── indexComp.ts (New file for testing composition version)
-                                                ## └── oop/
-mkdir src/oop/products                          ##     └── products/
-touch src/oop/products/Product.ts               ##         ├── Product.ts (new version)
-touch src/oop/products/ProductFeature.ts        ##         ├── ProductFeature.ts
-touch src/oop/products/ShippingFeature.ts       ##         ├── ShippingFeature.ts
-touch src/oop/products/DownloadFeature.ts       ##         ├── DownloadFeature.ts
-touch src/oop/products/SubscriptionFeature.ts   ##         └── SubscriptionFeature.ts
-touch src/oop/products/ReturnPolicyFeature.ts   ##         └── ReturnPolicyFeature.ts
+                                                    ## src/
+touch src/indexRef.ts                               ## ├── indexRef.ts (New file for testing refactored version)
+                                                    ## └── oop/
+mkdir -p src/oop/products                           ##     └── products/
+touch src/oop/products/Product.ts                   ##         ├── Product.ts (new version)
+touch src/oop/products/ProductFeature.ts            ##         ├── ProductFeature.ts
+touch src/oop/products/ShippingFeature.ts           ##         ├── ShippingFeature.ts
+touch src/oop/products/DownloadFeature.ts           ##         ├── DownloadFeature.ts
+touch src/oop/products/SubscriptionFeature.ts       ##         ├── SubscriptionFeature.ts
+touch src/oop/products/ReturnPolicyFeature.ts       ##         └── ReturnPolicyFeature.ts
+                                                    ## tests/
+touch tests/product.test.ts                         ## └── product.test.ts
 ```
 
 ### IV.1.1. Step 1. [Product](oop-ts-shop/src/oop/products/Product.ts) new Product as Aggregate
@@ -1132,10 +1180,10 @@ import { ProductFeature } from "./ProductFeature";  // Add Import line for Produ
 ...
 ```
 
-### IV.2.1. Use in [indexComp.ts](oop-ts-shop/src/indexComp.ts)
+### IV.2.1. Use in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
 
 ```ts
-// src/indexComp.ts
+// src/indexRef.ts
 import { Product } from "./oop/products/Product";
 import { DownloadFeature } from "./oop/products/DownloadFeature";
 import { ShippingFeature } from "./oop/products/ShippingFeature";
@@ -1153,7 +1201,7 @@ console.log(product); // To verify the structure
 ### IV.2.2. Run the code
 
 ```bash
-npx ts-node src/indexComp.ts
+npx ts-node src/indexRef.ts
 ```
 
 ### IV.2.3. Expected Output
@@ -1180,7 +1228,7 @@ Product {
     }
 ```
 
-### IV.3.2. Use helper method in [indexComp.ts](oop-ts-shop/src/indexComp.ts)
+### IV.3.2. Use helper method in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
 
 ```ts
 ...
@@ -1195,7 +1243,7 @@ if (shipping) {
 ### IV.3.3. Run the code
 
 ```bash
-npx ts-node src/indexComp.ts
+npx ts-node src/indexRef.ts
 ```
 
 ### IV.3.4. Expected Output
@@ -1314,10 +1362,10 @@ export class ShippingFeature implements ProductFeature { // Already exists
 
 ## IV.6. Testing of composition
 
-### VI.6.0. Integrate new Feature in [indexComp.ts](oop-ts-shop/src/indexComp.ts) and [test](oop-ts-shop/tests/product.test.ts) for product
+### VI.6.0. Integrate new Feature in [indexRef.ts](oop-ts-shop/src/indexRef.ts) and [test](oop-ts-shop/tests/product.test.ts) for product
 
 ```ts
-// src/indexComp.ts
+// src/indexRef.ts
     ...
     console.log(shipping?.[0]?.weight); // .weight -> ?.[0]?.weight
     ...
@@ -1389,3 +1437,556 @@ Question                                            | Answer
 **Why is composition more flexible?**               | Because it doesn't depend on conditional statements of standard fields and allows for dynamic assembly of objects from "blocks" (features)
 **Can both approaches be combined?**                | Yes, for complex problems it is even necessary to ensure technical consistency and hierarchy while maintaining flexibility
 **What would happen with 10 types of products?**    | The number of combinations would be too large to quickly and efficiently create the appropriate object using class inheritance (class explosion)
+
+## **Lab V. Polymorphism**
+
+## V.1. Refactoring to Polymorphism
+
+## V.1.0. Create structure for Polymorphism
+
+```bash
+                                                    ## src/
+                                                    ## ├── app/
+touch src/app/Checkout.ts                           ## │   └── Checkout.ts  
+                                                    ## └── domain/ 
+mkdir -p src/domain/shipping                        ##     └── shipping/
+touch src/domain/shipping/CalculateShipping.ts      ##         ├── CalculateShipping.ts
+touch src/domain/shipping/ShippingMethod.ts         ##         ├── ShippingMethod.ts
+touch src/domain/shipping/CourierShipping.ts        ##         ├── CourierShipping.ts
+touch src/domain/shipping/PickupShipping.ts         ##         ├── PickupShipping.ts
+touch src/domain/shipping/LockerShipping.ts         ##         └── LockerShipping.ts
+                                                    ## tests/
+touch tests/shipping.test.ts                        ## └── shipping.test.ts
+```
+
+### V.1.1. If-else [implementation](oop-ts-shop/src/domain/shipping/CalculateShipping.ts)
+
+```ts
+// src/domain/shipping/CalculateShipping.ts
+// -- Only for demonstration purposes! --
+import { Money } from "../Money";
+
+export function CalculateShipping(type: string, weight: number): Money {
+    if (type === "Courier") {
+        return new Money(1500);
+    } else if (type === "Pickup") {
+        return new Money(0);
+    } else if (type === "Locker") {
+        return new Money(800);
+    } else {
+        throw new Error("Invalid shipping type");
+    }
+
+    throw new Error("Unknown shipping type");
+}
+```
+
+* This implementation is not scalable - adding a new shipping type requires modifying existing code!
+
+### V.1.2. Interface for [ShippingMethod](oop-ts-shop/src/domain/shipping/ShippingMethod.ts)
+
+```ts
+// src/domain/shipping/ShippingMethod.ts
+import { Money } from "../Money";
+
+export interface ShippingMethod {
+    calculate(weight: number): Money;
+    name(): string;
+}
+```
+
+### V.1.3. Implementation in [CourierShipping](oop-ts-shop/src/domain/shipping/CourierShipping.ts)
+
+```ts
+// src/domain/shipping/CourierShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+
+export class CourierShipping implements ShippingMethod {
+    calculate(weight: number): Money {
+        return new Money(1500 + weight * 200);
+    }
+
+    name(): string {
+        return "Courier";
+    }
+}
+```
+
+### V.1.4. Implementation in [PickupShipping](oop-ts-shop/src/domain/shipping/PickupShipping.ts)
+
+```ts
+// src/domain/shipping/PickupShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+
+export class PickupShipping implements ShippingMethod {
+    calculate(weight: number): Money {
+        return new Money(0);
+        }
+
+        name(): string {
+            return "Pickup";
+        }
+}
+```
+
+### V.1.5. Implementation in [LockerShipping](oop-ts-shop/src/domain/shipping/LockerShipping.ts)
+
+```ts
+// src/domain/shipping/LockerShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+
+export class LockerShipping implements ShippingMethod {
+    calculate(weight: number): Money {
+        return new Money(800 + weight * 100);
+    }
+
+    name(): string {
+        return "Locker";
+    }
+}
+```
+
+## V.2. Refactor of old code before using Polymorphism
+
+### V.2.0. Because [old Cart](oop-ts-shop/src/oop/Cart.ts) class is connected with [old Product](oop-ts-shop/src/oop/Product.ts) class (before Lab IV) create new structure new implementation
+
+```bash
+                                                    ## src/
+                                                    ## └── oop/
+mkdir -p src/oop/carts                              ##     └── carts/
+cp src/oop/Cart.ts src/oop/carts/Cart.ts            ##         ├── Cart.ts (new version)     [cp or mv]
+cp src/oop/CartItem.ts src/oop/carts/CartItem.ts    ##         └── CartItem.ts (new version) [cp or mv]
+```
+
+### V.2.1. Fix imports in [new Cart](oop-ts-shop/src/oop/carts/Cart.ts) and [new CartItem](oop-ts-shop/src/oop/carts/CartItem.ts)
+
+```ts
+// src/oop/carts/Cart.ts
+// src/oop/carts/CartItems.ts
+import { Money } from "../../domain/Money";         // Fix import for Money by prefixing link with ../
+import { Product } from "../products/Product";      // Import for new Product
+...
+```
+
+### V.2.2. Encapsulate [Product](oop-ts-shop/src/oop/products/Product.ts): add missing fields and methods from [old Product](oop-ts-shop/src/oop/Product.ts)
+
+```ts
+// src/oop/products/Product.ts
+import { Money } from "../../domain/Money";
+    ...
+    // Encapsulation by public -> private + `_` prefix like in old Product
+    private readonly _id:string,                       
+    private readonly _name:string, 
+    private readonly _price: Money,                                 // Add missing Money Fields    
+    private readonly _features: ProductFeature[] = []
+    ...
+    const uniqueFeatures = this._features.filter(f => f.isUnique);  // this.features -> this._features
+    ...
+        return this._features.                                      // this.features -> this._features
+    ...
+    // Add getters for id, name, price (methods from old Product)
+    get id(): string {
+        return this._id;
+    }
+
+    get name(): string {
+        return this._name;
+    }   
+
+    get price(): Money {
+        return this._price;
+    }
+```
+
+### V.2.3. Fix indexRef.ts with missing Money in Product constructor
+
+```ts
+// src/indexRef.ts
+...
+const product = new Product("1","Game Bundle", new Money(1000, "USD"), [...]) // add new Money(1000, "USD"), as price argument
+...
+```
+
+### V.2.4. Fix tests for [Product](oop-ts-shop/tests/product.test.ts) with missing Money
+
+```ts
+// src/tests/product.test.ts
+import { Money } from "../src/domain/Money";
+    ...
+        const product = new Product("1", "Test", new Money(100), // <V.2.4./> new Money(100) before [...]
+    ...
+        expect(() => new Product("1", "Test", new Money(100),   // <V.2.4./> new Money(100) before [...]
+    ...
+```
+
+## V.3. Use Polymorphism
+
+### V.3.1. Use Polymorphism in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+
+```ts
+// src/indexRef.ts
+import { CourierShipping } from "./domain/shipping/CourierShipping"; 
+...
+const shippingP = new CourierShipping();
+
+const price = shippingP.calculate(2);
+
+console.log(price.format());
+```
+
+### V.3.2. Integrate in [Cart](oop-ts-shop/src/oop/carts//Cart.ts)
+
+```ts
+// src/oop/Cart.ts
+  getTotalWeight(): number {
+    return this.items.reduce(
+      (sum, item) => sum + (item.quantity * 1), 0);
+  }
+```
+
+### V.3.3. [Checkout](oop-ts-shop/src/app/Checkout.ts)
+
+```ts
+// src/app/Checkout.ts
+import { Money } from "../domain/Money";
+import { ShippingMethod } from "../domain/shipping/ShippingMethod";
+import { Cart } from "../oop/Cart";
+
+export class Checkout {
+    constructor(
+        private readonly shipping: ShippingMethod) {}
+
+    calculate(cart: Cart): Money{
+        const shippingCost = this.shipping.calculate(cart.getTotalWeight());
+        return cart.totalPrice().add(shippingCost);
+    }
+}
+```
+
+### V.3.4. Use Checkout in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+
+```ts
+// src/indexRef.ts
+import { Checkout } from "./app/Checkout";
+import { Cart } from "./oop/carts/Cart";
+...
+const p1 = new Product("1", "Test", new Money(1000, "PLN"), 
+[new ShippingFeature(2)]); // or[new SubscriptionFeature(2)]);
+
+const cart = new Cart();
+cart.add(p1, 2);
+
+const checkout = new Checkout(new CourierShipping());
+const total = checkout.calculate(cart);
+
+console.log(`Total price with shipping: ${total.format()}`);
+```
+
+## Polymorphism - Tests
+
+### V.4.1. Write tests for [Checkout](oop-ts-shop/tests/shipping.test.ts)
+
+```ts
+import { describe, it, expect } from "vitest";
+import { CourierShipping } from "../src/domain/shipping/CourierShipping";
+
+describe("Shipping", () => {
+    it("calculates courier shipping", () => {
+
+        const shipping = new CourierShipping();
+        const result = shipping.calculate(2);
+        
+        expect(result.amount).toBeGreaterThan(0);
+    });
+});
+```
+
+### V.4.2. Run the tests
+
+```bash
+npx vitest tests/shipping.test.ts
+```
+
+### V.4.3. Expected Test Output
+
+```bash
+ ✓ tests/shipping.test.ts (1 test) 9ms
+   ✓ Shipping (1)
+     ✓ calculates courier shipping 5ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
+```
+
+### V.4.4. Run the code
+
+```bash
+npx ts-node src/indexRef.ts
+```
+
+### V.4.5. Expected Output
+
+```bash
+...
+19.00 PLN
+Total price with shipping: 39.00 PLN
+```
+
+### V.4.6. Mandatory task
+
+To-do                                   | Status    | Reference
+:---                                    | :---:     | :---
+Remove `if-else` from shipping logic    | ✅        | [`V.1.2.`](#v12-interface-for-shippingmethod) - [`V.1.5.`](#v15-implementation-in-lockershipping)
+Shipping Method interface               | ✅        | [`V.1.2.`](#v12-interface-for-shippingmethod) - [`V.1.5.`](#v15-implementation-in-lockershipping)
+3 implementations                       | ✅        | [`V.1.3.`](#v13-implementation-in-couriershipping) - [`V.1.5.`](#v15-implementation-in-lockershipping)
+Integration with Checkout               | ✅        | [`V.3.3.`](#v33-checkout) - [`V.3.4.`](#v34-use-checkout-in-indexrefts)
+Test                                    | ✅        | [`V.4.1.`](#v41-write-tests-for-checkout) - [`V.4.3.`](#v43-expected-test-output)
+
+## Additional tasks - Polymorphism
+
+### V.5.0. Additional Tasks Structure
+
+```bash
+                                                        ## src/
+                                                        ## └── domain/
+touch src/domain/Size.ts                                ##     ├── Size.ts
+touch src/domain/Unit.ts                                ##     ├── Unit.ts
+                                                        ##     └── shipping/
+touch src/domain/shipping/DroneShipping.ts              ##         ├── DroneShipping.ts  
+touch src/domain/shipping/ExpressShipping.ts            ##         └── ExpressShipping.ts   
+touch src/domain/shipping/DigitalShipping.ts            ##         └── DigitalShipping.ts              
+```
+
+### V.5.1. Add [`ExpressShipping`](oop-ts-shop/src/domain/shipping/ExpressShipping.ts)
+
+```ts
+// src/domain/shipping/ExpressShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+
+export class ExpressShipping implements ShippingMethod {
+    calculate(weight: number): Money {
+        return new Money(20 + weight * 10);
+    }
+    name(): string {
+        return "Express Shipping";
+    }
+}
+```
+
+### V.5.2. Add [`DroneShipping`](oop-ts-shop/src/domain/shipping/DroneShipping.ts)
+
+```ts
+// src/domain/shipping/DroneShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+
+export class DroneShipping implements ShippingMethod {  // source code + export
+    calculate(): Money {
+        return new Money(2000);
+    }
+    name(): string {
+        return "Drone";
+    }
+}
+```
+
+### V.5.3. Add `estimatedDeliveryDays()` method to [`ShippingMethod`](oop-ts-shop/src/domain/shipping/ShippingMethod.ts) interface
+
+```ts
+// src/domain/shipping/ShippingMethod.ts
+{
+    ...
+    estimatedDeliveryDays(): number;
+}
+```
+
+```ts
+// src/domain/shipping/CourierShipping.ts
+// src/domain/shipping/DroneShipping.ts
+// src/domain/shipping/ExpressShipping.ts
+// src/domain/shipping/LockerShipping.ts
+// src/domain/shipping/PickupShipping.ts
+{   
+    ...
+    estimatedDeliveryDays(): number;
+        return X;                       // Replace X with appropriate number of days for each metods
+}
+```
+
+### V.5.4. Add validation (e.g. max weight)
+
+```ts
+// src/domain/shipping/ShippingMethod.ts
+{
+    ...
+    validate(weight: number): void;
+}
+```
+
+```ts
+// src/domain/shipping/CourierShipping.ts
+// src/domain/shipping/DroneShipping.ts
+// src/domain/shipping/ExpressShipping.ts
+// src/domain/shipping/LockerShipping.ts
+// src/domain/shipping/PickupShipping.ts
+{   
+    ...
+    private readonly MAX_WEIGHT = X; // New Field - Replace X with appropriate max weight for each method   
+    ...
+    validate(weight: number): void {
+        if (weight > this.MAX_WEIGHT) {
+            throw new Error(`Weight ${weight}kg exceeds maximum limit of ${this.MAX_WEIGHT}kg for ${this.name()}.`);
+        }
+    }
+}
+```
+
+### V.5.5. Add free delivery for orders above certain amount
+
+```ts
+// src/domain/shipping/ShippingMethod.ts
+{
+    ...
+    calculate(..., cartTotal: Money): Money; // Add cartTotal parameter to calculate method
+    ...
+}
+```
+
+```ts
+// src/domain/shipping/CourierShipping.ts
+// src/domain/shipping/DroneShipping.ts
+// src/domain/shipping/ExpressShipping.ts
+// src/domain/shipping/LockerShipping.ts
+// src/domain/shipping/PickupShipping.ts
+{   
+    ...
+    private readonly FreeDeliveryThreshold = X;  // New Field - Replace X with appropriate amount for free delivery
+    ...
+    calculate(..., cartTotal: Money): Money;    // Add cartTotal parameter to calculate method
+    
+        if (cartTotal.amount >= this.FreeDeliveryThreshold) {
+                return new Money(0);
+        }
+    ...
+}
+```
+
+### V.5.6. Instead of weight, use [``Size`](oop-ts-shop/src/domain/Size.ts) (with [`Unit`](oop-ts-shop/src/domain/Unit.ts))
+
+* Create [Unit](oop-ts-shop/src/domain/Unit.ts)
+
+```ts
+// src/domain/Unit.ts
+export type Unit = "KG" | "MB" | "L";
+```
+
+* Create [Size](oop-ts-shop/src/domain/Size.ts)
+
+```ts
+// src/domain/Size.ts
+import { Unit } from "./Unit";
+
+export class Size {
+    constructor(
+        public readonly value: number,
+        public readonly unit: Unit
+    ) {}
+
+    toString(): string {
+        return `${this.value} ${this.unit}`;
+    }
+}
+```
+
+* Refactor [ShippingMethod](oop-ts-shop/src/domain/shipping/ShippingMethod.ts) and implementations to use Size instead of weight
+
+```ts
+// src/domain/shipping/ShippingMethod.ts
+import { Size } from "../Size";
+...
+    calculate(size: Size ...)       // Instead of weight: number
+    ...
+    validate(size: Size ...)        // Instead of weight: number
+
+```
+
+* In implementations:
+
+```ts
+// src/domain/shipping/CourierShipping.ts
+// src/domain/shipping/DroneShipping.ts
+// src/domain/shipping/ExpressShipping.ts
+// src/domain/shipping/LockerShipping.ts
+// src/domain/shipping/PickupShipping.ts
+import { Size } from "../Size";
+...
+{   
+    // all weight: number -> size: Size + kg - > ${size.unit}
+    validate(size: Size
+    ): void {
+        if (size.value > this.MAX_WEIGHT) {
+            throw new Error(`Weight ${size.value}${size.unit} exceeds maximum limit of ${this.MAX_WEIGHT}kg for ${this.name()}.`);
+        }
+    }
+}
+```
+
+* In [ShippingFeature](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+
+```ts
+// src/oop/products/ShippingFeature.ts
+import { Size } from "../../domain/Size";
+    ...
+    public readonly size: Size                      // weight: number -> size: Size
+    ...
+```
+
+* In IndexRef.ts
+
+```ts
+// src/indexRef.ts
+import { Size } from "./domain/Size";
+...
+    new ShippingFeature(new Size(1.2, "KG")),                                       // (1,2) -> (new Size(1.2, "KG"))
+    ...
+    console.log(shipping?.[0]?.size); // weight -> size
+    ...
+    const price = shippingP.calculate(new Size(1.2, "KG"), new Money(5000, "PLN")); // (1,2) -> (new Size(1.2, "KG"))
+    ...
+    [new ShippingFeature(new Size(1.2, "KG"))]   // <V.5.6./> 1.2 -> new Size(1.2, "KG")
+```
+
+### V.5.7. Disable physical shipping for [virtual products](/oop-ts-shop/src/domain/shipping/DigitalShipping.ts)
+
+```ts
+// src/domain/shipping/DigitalShipping.ts
+import { Money } from "../Money";
+import { ShippingMethod } from "./ShippingMethod";
+import { Size } from "../Size";
+
+export class DigitalShipping implements ShippingMethod {
+    calculate(size: Size, cartTotal: Money): Money {
+        this.validate(size);
+        return new Money(0);
+    }
+
+    validate(size: Size): void {
+        if (size.unit !== "MB") {
+            throw new Error(`Digital delivery does not support physical unit: ${size.unit}`);
+        }
+    }
+
+    name(): string {
+        return "Digital Download";
+    }
+
+    estimatedDeliveryDays(): number {
+        return 0;
+    }
+}
+```

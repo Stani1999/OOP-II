@@ -1,9 +1,7 @@
-// <IV.1.> ! This Version is outdated ! 
-// New version of Cart class is in src/oop/carts/Cart.ts
-
-// Lab I.3.3.
-import { Money } from "../domain/Money";                  // <III.1.2./> Add import line for Money
-import { Product } from "./Product";
+// Lab V.2.0.
+// Old version of Cart class before moving in src/oop/Cart.ts
+import { Money } from "../../domain/Money";                  
+import { Product } from "../products/Product";
 import { CartItem } from "./CartItem";
 
 export class Cart {
@@ -22,39 +20,37 @@ export class Cart {
     }
   }
 
-  // <I.5.3.>
   remove(productId: string): void {
     this.items = this.items.filter(item => item.product.id !== productId);
   }
-  // <I.5.3.>
 
   totalItems(): number {
     return this.items.reduce((sum, item) => sum + item.quantity, 0);
   }
 
-  // <I.5.1.>
-  totalPrice(): Money {                                   // <III.1.2./> number -> Money
+  totalPrice(): Money {                                   
     return this.items.reduce(
       (sum, item) => 
-  // <III.1.2.> 
-  //  sum + item.product.price * item.quantity, 0);       // <III.1.2./> Commented out old implementation using numbers             
+             
       sum.add(item.product.price.multiply(item.quantity)), 
     new Money(0)
   ); 
-  // </III.1.2.>
   }
-  // </Lab I.5.1.>
-  
-    // <Lab II.1.4>
-  discountedTotalPricePercent(percent: number): Money {   // <III.1.2./> number -> Money
+
+  discountedTotalPricePercent(percent: number): Money {   
     if (percent < 0 || percent > 100) {
       throw new Error("Percentage must be between 0 and 100");
     }
     const total = this.totalPrice();
-    //  <III.1.2.>
-    // return total - (total * percent / 100);            // <III.1.2./> Commented out old implementation using numbers
+
     return total.multiply((100 - percent) / 100);
-    //  </III.1.2.>
   }
-  // </II.1.4>
+
+
+  // <V.2.2.>
+  getTotalWeight(): number {
+    return this.items.reduce(
+      (sum, item) => sum + (item.quantity * 1), 0);
+  }
+  // </V.2.2.>
 }
