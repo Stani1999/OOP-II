@@ -1,5 +1,9 @@
 // Lab V.2.0.
 // Old version of Cart class before moving in src/oop/Cart.ts
+// <V.5.5.>
+import { Size } from "../../domain/Size";                  
+import { ShippingFeature } from "../products/ShippingFeature";
+// </V.5.5.>
 import { Money } from "../../domain/Money";                  
 import { Product } from "../products/Product";
 import { CartItem } from "./CartItem";
@@ -31,10 +35,9 @@ export class Cart {
   totalPrice(): Money {                                   
     return this.items.reduce(
       (sum, item) => 
-             
-      sum.add(item.product.price.multiply(item.quantity)), 
-    new Money(0)
-  ); 
+             sum.add(item.product.price.multiply(item.quantity)), 
+      new Money(0)
+    ); 
   }
 
   discountedTotalPricePercent(percent: number): Money {   
@@ -46,11 +49,24 @@ export class Cart {
     return total.multiply((100 - percent) / 100);
   }
 
-
   // <V.2.2.>
-  getTotalWeight(): number {
-    return this.items.reduce(
-      (sum, item) => sum + (item.quantity * 1), 0);
-  }
+  // getTotalWeight(): number {
+  //   return this.items.reduce(
+  //     (sum, item) => sum + (item.quantity * 1), 0);
+  // }
   // </V.2.2.>
+  // <V.5.5.>
+  getTotalSize(): Size {
+    const totalKG = this.items.reduce((sum, item) => {
+    const shipping = item.product.getFeature(ShippingFeature);
+
+      if (shipping?.[0] && shipping[0].size.unit === "KG") {
+        return sum + (shipping[0].size.value * item.quantity);
+      }
+        return sum;
+    }, 0);
+
+    return new Size(totalKG, "KG");
+  }
+  // </V.5.5.>
 }

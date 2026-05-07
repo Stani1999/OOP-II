@@ -1882,7 +1882,7 @@ export class DroneShipping implements ShippingMethod {  // source code + export
 
 ```ts
 // src/domain/Unit.ts
-export type Unit = "KG" | "MB" | "L";
+export type Unit = "KG" | "MB";
 ```
 
 * Create [Size](oop-ts-shop/src/domain/Size.ts)
@@ -1946,6 +1946,39 @@ import { Size } from "../../domain/Size";
     ...
 ```
 
+* In [Cart](oop-ts-shop/src/oop/carts/Cart.ts) by new method `getTotalSize()` instead of `getTotalWeight()`
+
+```ts
+// src/oop/carts/Cart.ts
+import { Size } from "../../domain/Size";
+import { ShippingFeature } from "../products/ShippingFeature";
+...
+// Remove or comment getTotalWeight() 
+...
+  getTotalSize(): Size {                                        
+    const totalKG = this.items.reduce((sum, item) => {
+    const shipping = item.product.getFeature(ShippingFeature);
+
+      if (shipping?.[0] && shipping[0].size.unit === "KG") {
+        return sum + (shipping[0].size.value * item.quantity);
+      }
+        return sum;
+    }, 0);
+
+    return new Size(totalKG, "KG");
+  }
+  ...
+```
+
+* In [Checkout](oop-ts-shop/src/app/Checkout.ts) by using `getTotalSize()` instead of `getTotalWeight()`
+
+```ts
+// src/app/Checkout.ts
+...
+        const shippingCost = this.shipping.calculate(cart.getTotalSize(),cart.totalPrice()); // Change Weight -> Size, Add cart.totalPrice() 
+...
+```
+
 * In IndexRef.ts
 
 ```ts
@@ -1988,5 +2021,37 @@ export class DigitalShipping implements ShippingMethod {
     estimatedDeliveryDays(): number {
         return 0;
     }
+}
+```
+
+## **Lab VI: Result, generics, type guards**
+
+## VI.1. Result Type
+
+### VI.1.0. Create structure for Lab VI
+
+```bash
+                                                    ## tests/
+touch tests/results.test.ts                         ## └── results.test.ts
+                                                    ## src/
+                                                    ## ├──domain/
+touch src/domain/IRepository.ts                     ## |  └── IRepository.ts : 
+mkdir -p src/shared                                 ## └── shared/
+touch src/shared/Result.ts                          ##         └── Result.ts
+```
+
+### VI.1.1.1. Create [Result](oop-ts-shop/src/shared/Result.ts) type
+
+```ts
+// src/shared/Result.ts
+export type Result<T, E> =
+| { success: true; data: T }
+| { success: false; error: E };
+
+export function ok<T>(data: T): Result<T, never> {
+    return { success: true, data };
+}
+export function fail<E>(error: E): Result<never, E> {
+    return { success: false, error };
 }
 ```
