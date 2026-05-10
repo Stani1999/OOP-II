@@ -23,14 +23,24 @@ export class Product
         }
         // </IV.6.1.>
     } 
-    
-    // <IV.3.1.>
-    getFeature<T>(type: new (...args: any[]) =>T): T[] | undefined {// <IV.5.2.> T -> T[]
-        return this._features.                                                      // <V.2.2./> this.features -> this._features
-        filter                                                      // find -> filter, 
-        (f => f instanceof type) as T[];                            // </IV.5.2.> T -> T[]    
+
+    // <VI.4.5.8.>
+    // // <IV.3.1.>
+    // getFeature<T>(type: new (...args: unknown[]) =>T): T[] | undefined { // <VI.2.5.> any -> unknown <IV.5.2.> T -> T[]
+    //     return this._features.                                                      // <V.2.2./> this.features -> this._features
+    //     filter                                                      // find -> filter, 
+    //     (f => f instanceof type) as T[];                            // </IV.5.2.> T -> T[]    
+    // }
+    // // </IV.3.1.>
+
+    getFeature<T extends ProductFeature>(
+        type: abstract new (...args: never[]) => T
+    ): T[] | undefined {
+        return this._features.filter(
+            (f): f is T => f instanceof type
+        );
     }
-    // </IV.3.1.>
+    // </VI.4.5.8.>
 
     // <V.2.2.> Add getters for id, name, price (methods from old Product)
     get id(): string {

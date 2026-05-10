@@ -73,7 +73,7 @@ mkdir -p tests                                      ##  tests/
 touch src/procedural/cart.ts
 ```
 
-### I.2.1. Implementation of [Procedural Cart](oop-ts-shop/src/procedural/cart.ts) file
+### I.2.1. Implementation of [`Procedural Cart`](oop-ts-shop/src/procedural/cart.ts) file
 
 ```ts
 // src/procedural/cart.ts
@@ -175,7 +175,7 @@ touch src/oop/CartItem.ts                           ##     ├── CartItem.ts
 touch src/oop/Cart.ts                               ##     └── Cart.ts
 ```
 
-### I.3.1. Step 1. [Product](oop-ts-shop/src/oop/Product.ts) Class
+### I.3.1. Step 1. [`Product`](oop-ts-shop/src/oop/Product.ts) Class
 
 ```ts
 // src/oop/Product.ts
@@ -188,7 +188,7 @@ export class Product {
 }
 ```
 
-### I.3.2. Step 2. [CartItem](oop-ts-shop/src/oop/CartItem.ts) Class
+### I.3.2. Step 2. [`CartItem`](oop-ts-shop/src/oop/CartItem.ts) Class
 
 ```ts
 // src/oop/CartItem.ts
@@ -210,7 +210,7 @@ export class CartItem {
 }
 ```
 
-### I.3.3. Step 3. [Cart](oop-ts-shop/src/oop/Cart.ts) Class
+### I.3.3. Step 3. [`Cart`](oop-ts-shop/src/oop/Cart.ts) Class
 
 ```ts
 // src/oop/Cart.ts
@@ -259,7 +259,7 @@ console.log("Total items:", cart.totalItems());
 touch tests/cart.test.ts
 ```
 
-### I.4.1. Write tests for [Cart](oop-ts-shop/tests/cart.test.ts)
+### I.4.1. Write tests for [`Cart`](oop-ts-shop/tests/cart.test.ts)
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -301,11 +301,11 @@ npx vitest
 
 To-do                                   | Status    | Reference
 :---                                    | :---:     | :---
-The project is running in strict mode   | ✅        | [I.1.2.](#i12-modify-tsconfigjson)
-The procedural version is running       | ✅        | [I.2.2.](#i22-manual-testing)
-The OOP version is running              | ✅        | [I.3.4.](#i34-step-4-use-in-indexts)
-There is at least 1 test                | ✅        | [I.4.1.](#i41-write-tests-for-cart)
-No `any`                                | ✅        | [I.3.](#i3-stage-3-object-oriented-programming-refactor)
+The project is running in strict mode   | ✅        | [`I.1.2.`](#i12-modify-tsconfigjson)
+The procedural version is running       | ✅        | [`I.2.2.`](#i22-manual-testing)
+The OOP version is running              | ✅        | [`I.3.4.`](#i34-step-4-use-in-indexts)
+There is at least 1 test                | ✅        | [`I.4.1.`](#i41-write-tests-for-cart)
+No `any`                                | ✅        | [`I.3.`](#i3-stage-3-object-oriented-programming-refactor)
 
 ## I.5 Additional tasks (for those interested)
 
@@ -415,7 +415,7 @@ What is gained by multiple instances?   | It allows for independent internal sta
 
 ## II.1. Stage 1. Class Sealing
 
-### II.1.1. Task 1 - [Product](oop-ts-shop/src/oop/Product.ts) Validation
+### II.1.1. Task 1 - [`Product`](oop-ts-shop/src/oop/Product.ts) Validation
 
 ```ts
 // src/oop/Product.ts (comment out or delete old code and replace with this)
@@ -448,7 +448,7 @@ export class Product {
 }
 ```
 
-### II.1.2. Task 2 - [CartItem](oop-ts-shop/src/oop/CartItem.ts) Quantity Validation
+### II.1.2. Task 2 - [`CartItem`](oop-ts-shop/src/oop/CartItem.ts) Quantity Validation
 
 ```ts
 // src/oop/CartItem.ts
@@ -557,7 +557,7 @@ touch app/ListProducts.ts                           ##     └── ListProduct
 touch tests/listProducts.test.ts                    ## tests/listProducts.test.ts
 ```
 
-### II.2.1. Step 1. [Repository Interface](oop-ts-shop/src/domain/IProductRepository.ts)
+### II.2.1. Step 1. [`Repository Interface`](oop-ts-shop/src/domain/IProductRepository.ts)
 
 ```ts
 // src/domain/IProductRepository.ts
@@ -569,7 +569,7 @@ export interface IProductRepository {
 }
 ```
 
-### II.2.2. Step 2. [In-MemoryRepository Implementation](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+### II.2.2. Step 2. [`In-MemoryRepository Implementation`](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
 
 ```ts
 // src/infra/InMemoryProductRepository.ts
@@ -595,7 +595,7 @@ export class InMemoryProductRepository
 }
 ```
 
-### II.2.3. Step 3. [Use Case](oop-ts-shop/src/app/ListProducts.ts)
+### II.2.3. Step 3. [`Use Case`](oop-ts-shop/src/app/ListProducts.ts)
 
 ```ts
 // src/app/ListProducts.ts
@@ -610,7 +610,7 @@ export class ListProducts {
 }
 ```
 
-### II.2.4. Step 4. Use in [index.ts](oop-ts-shop/src/index.ts)
+### II.2.4. Step 4. Use in [`index.ts`](oop-ts-shop/src/index.ts)
 
 ```ts
 // src/index.ts
@@ -648,7 +648,7 @@ npx ts-node ../src/index.ts
 ]
 ```
 
-### II.2.7. Write [listProducts](oop-ts-shop/tests/listProducts.test.ts) test
+### II.2.7. Write [`listProducts`](oop-ts-shop/tests/listProducts.test.ts) test
 
 ```ts
 // src/tests/listProducts.test.ts
@@ -692,12 +692,12 @@ npx vitest tests/listProducts.test.ts
 
 To-do                                       | Status    | Reference
 :---                                        | :---:     | :---
-Repository interface exists                 | ✅        | [II.2.1.](#ii21-step-1-repository-interface)
-InMemory implementation exists              | ✅        | [II.2.2.](#ii22-step-2-in-memoryrepository-implementation)
-Use-case is independent of implementation   | ✅        | [II.2.3.](#ii23-step-3-use-case)
-Use-case is covered by tests                | ✅        | [II.2.7.](#ii27-write-listproducts-test)
+Repository interface exists                 | ✅        | [`II.2.1.](#ii21-step-1-repository-interface)
+InMemory implementation exists              | ✅        | [`II.2.2.](#ii22-step-2-in-memoryrepository-implementation)
+Use-case is independent of implementation   | ✅        | [`II.2.3.](#ii23-step-3-use-case)
+Use-case is covered by tests                | ✅        | [`II.2.7.](#ii27-write-listproducts-test)
 
-### II.2.11. Additional task - Add a [FakeProductRepository](oop-ts-shop/src/infra/FakeProductRepository.ts) (for [testing](#ii214-testing-all-additional-features))
+### II.2.11. Additional task - Add a [`FakeProductRepository`](oop-ts-shop/src/infra/FakeProductRepository.ts) (for [testing](#ii214-testing-all-additional-features))
 
 ```ts
 // src/infra/FakeProductRepository.ts 
@@ -720,7 +720,7 @@ export class FakeProductRepository
 } 
 ```
 
-### II.2.12. Additional task - Add [create(product)](oop-ts-shop/src/domain/IProductRepository.ts) method
+### II.2.12. Additional task - Add [`create(product)`](oop-ts-shop/src/domain/IProductRepository.ts) method
 
 ```ts
 // src/domain/IProductRepository.ts
@@ -743,7 +743,7 @@ export interface IProductRepository { // Already exists
 } 
 ```
 
-### II.2.13. Additional task - Introduce generics to [repository](oop-ts-shop/src/domain/IProductRepository.ts)
+### II.2.13. Additional task - Introduce generics to [`repository`](oop-ts-shop/src/domain/IProductRepository.ts)
 
 ```ts
 // src/domain/IProductRepository.ts
@@ -764,7 +764,7 @@ export interface IProductRepository<T = Product> {
     ...
 ```
 
-### II.2.14. [Testing](oop-ts-shop/tests/listProducts.test.ts) all additional features
+### II.2.14. [`Testing`](oop-ts-shop/tests/listProducts.test.ts) all additional features
 
 ```ts
 // src/tests/listProducts.test.ts
@@ -824,7 +824,7 @@ touch src/domain/Currency.ts                        ##     └── Currency.ts
 touch tests/money.test.ts                           ## └── money.test.ts
 ```
 
-### III.1.1. Step 1. Create [Value Object](oop-ts-shop/src/domain/Money.ts)
+### III.1.1. Step 1. Create [`Value Object`](oop-ts-shop/src/domain/Money.ts)
 
 ```ts
 // src/domain/Money.ts
@@ -869,9 +869,9 @@ export class Money {
 }
 ```
 
-### III.1.2. Step 2. Integrate [Money](oop-ts-shop/src/domain/Money.ts) Value Object
+### III.1.2. Step 2. Integrate [`Money`](oop-ts-shop/src/domain/Money.ts) Value Object
 
-* In [Cart](oop-ts-shop/src/oop/Cart.ts)
+* In [`Cart`](oop-ts-shop/src/oop/Cart.ts)
 
 ```ts
 // src/oop/Cart.ts
@@ -891,7 +891,7 @@ import { Money } from "../domain/Money";                    // Add import for Mo
 }
 ```
 
-* In [CartItem](oop-ts-shop/src/oop/CartItem.ts)
+* In [`CartItem`](oop-ts-shop/src/oop/CartItem.ts)
 
 ```ts
 import { Money } from "../domain/Money";
@@ -905,7 +905,7 @@ import { Money } from "../domain/Money";
     ...
 ```
 
-* In [Product](oop-ts-shop/src/oop/Product.ts)
+* In [`Product`](oop-ts-shop/src/oop/Product.ts)
 
 ```ts
 // src/oop/Product.ts
@@ -924,7 +924,7 @@ import { Money } from "../domain/Money";
 }
 ```
 
-* In [InMemoryProductRepository](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+* In [`InMemoryProductRepository`](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
 
 ```ts
 // src/infra/InMemoryProductRepository.ts
@@ -935,7 +935,7 @@ import { Money } from "../domain/Money";
         ...
 ```
 
-* In [intex.ts](oop-ts-shop/src/index.ts)
+* In [`index.ts`](oop-ts-shop/src/index.ts)
 
 ```ts
 import { Money } from "./domain/Money";                      
@@ -946,7 +946,7 @@ import { Money } from "./domain/Money";
     ...
 ```
 
-### III.1.3. Step 3. Write tests for [Money](oop-ts-shop/tests/money.test.ts)
+### III.1.3. Step 3. Write tests for [`Money`](oop-ts-shop/tests/money.test.ts)
 
 ```ts
 // src/tests/money.test.ts
@@ -1000,7 +1000,7 @@ Money is immutable      | ✅        | [III.1.1.](#iii11-step-1-create-value-obj
 
 ## III.3. Additional tasks Value Objects
 
-### III.3.1. Add equls() method to [Money](oop-ts-shop/src/domain/Money.ts)
+### III.3.1. Add equls() method to [`Money`](oop-ts-shop/src/domain/Money.ts)
 
 ```ts
 // src/domain/Money.ts
@@ -1011,14 +1011,14 @@ Money is immutable      | ✅        | [III.1.1.](#iii11-step-1-create-value-obj
     ...
 ```
 
-### III.3.2. [Currency](oop-ts-shop/src/domain/Currency.ts) as union type "PLN" | "EUR" | "USD"
+### III.3.2. [`Currency`](oop-ts-shop/src/domain/Currency.ts) as union type "PLN" | "EUR" | "USD"
 
 ```ts
 // src/domain/Currency.ts
 export type Currency = "PLN" | "EUR" | "USD";
 ```
 
-### III.3.3. Integrate [Currency](oop-ts-shop/src/domain/Currency.ts) with [Money](oop-ts-shop/src/domain/Money.ts)
+### III.3.3. Integrate [`Currency`](oop-ts-shop/src/domain/Currency.ts) with [`Money`](oop-ts-shop/src/domain/Money.ts)
 
 ```ts
 // src/domain/Money.ts
@@ -1034,7 +1034,7 @@ import { Currency } from "./Currency";                          // Import for Cu
 }
 ```
 
-### III.3.4. Step 4. Value Object [Testing](oop-ts-shop/tests/money.test.ts)
+### III.3.4. Step 4. Value Object [`Testing`](oop-ts-shop/tests/money.test.ts)
 
 ```ts
 // src/tests/money.test.ts
@@ -1110,7 +1110,7 @@ touch src/oop/products/ReturnPolicyFeature.ts       ##         └── ReturnP
 touch tests/product.test.ts                         ## └── product.test.ts
 ```
 
-### IV.1.1. Step 1. [Product](oop-ts-shop/src/oop/products/Product.ts) new Product as Aggregate
+### IV.1.1. Step 1. [`Product`](oop-ts-shop/src/oop/products/Product.ts) new Product as Aggregate
 
 ```ts
 // src/oop/products/Product.ts (new version)
@@ -1124,14 +1124,14 @@ export class Product
 }
 ```
 
-### IV.1.2. Step 2. [Feature](oop-ts-shop/src/oop/products/ProductFeature.ts) interface
+### IV.1.2. Step 2. [`Feature`](oop-ts-shop/src/oop/products/ProductFeature.ts) interface
 
 ```ts
 // src/oop/products/ProductFeature.ts
 export interface ProductFeature {}
 ```
 
-### IV.1.3. Step 3. [Feature: Shipping](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+### IV.1.3. Step 3. [`Feature: Shipping`](oop-ts-shop/src/oop/products/ShippingFeature.ts)
 
 ```ts
 // src/oop/products/ShippingFeature.ts
@@ -1144,7 +1144,7 @@ export class ShippingFeature implements ProductFeature {
 }
 ```
 
-### IV.1.4. Step 4. [Feature: Download](oop-ts-shop/src/oop/products/DownloadFeature.ts)
+### IV.1.4. Step 4. [`Feature: Download`](oop-ts-shop/src/oop/products/DownloadFeature.ts)
 
 ```ts
 // src/oop/products/DownloadFeature.ts
@@ -1157,7 +1157,7 @@ export class DownloadFeature implements ProductFeature {
 }
 ```
 
-### IV.1.5. Step 5. [Feature: Subscription](oop-ts-shop/src/oop/products/SubscriptionFeature.ts)
+### IV.1.5. Step 5. [`Feature: Subscription`](oop-ts-shop/src/oop/products/SubscriptionFeature.ts)
 
 ```ts
 // src/oop/products/SubscriptionFeature.ts
@@ -1172,7 +1172,7 @@ export class SubscriptionFeature implements ProductFeature {
 
 ## IV.2. Use composition structure
 
-### IV.2.0. Fix [Product](oop-ts-shop/src/oop/products/Product.ts) to avoid error TS2304: Cannot find name 'ProductFeature'
+### IV.2.0. Fix [`Product`](oop-ts-shop/src/oop/products/Product.ts) to avoid error TS2304: Cannot find name 'ProductFeature'
 
 ```ts
 // src/oop/products/Product.ts 
@@ -1180,7 +1180,7 @@ import { ProductFeature } from "./ProductFeature";  // Add Import line for Produ
 ...
 ```
 
-### IV.2.1. Use in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+### IV.2.1. Use in [`indexRef.ts`](oop-ts-shop/src/indexRef.ts)
 
 ```ts
 // src/indexRef.ts
@@ -1220,7 +1220,7 @@ Product {
 
 ## IV.3. Helper methods
 
-### IV.3.1. Add helper methods to [Product](oop-ts-shop/src/oop/products/Product.ts)
+### IV.3.1. Add helper methods to [`Product`](oop-ts-shop/src/oop/products/Product.ts)
 
 ```ts
     getFeature<T>(type: new (...args: any[]) => T): T | undefined {
@@ -1228,7 +1228,7 @@ Product {
     }
 ```
 
-### IV.3.2. Use helper method in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+### IV.3.2. Use helper method in [`indexRef.ts`](oop-ts-shop/src/indexRef.ts)
 
 ```ts
 ...
@@ -1255,7 +1255,7 @@ npx ts-node src/indexRef.ts
 
 ## VI.4. Testing composition
 
-### IV.4.1. Write tests for [Product](oop-ts-shop/tests/product.test.ts)
+### IV.4.1. Write tests for [`Product`](oop-ts-shop/tests/product.test.ts)
 
 ```ts
 // src/tests/product.test.ts
@@ -1296,7 +1296,7 @@ npx vitest tests/product.test.ts
 
 ## IV.5. Additional tasks
 
-### IV.5.1. Add [ReturnPolicyFeature](oop-ts-shop/src/oop/products/ReturnPolicyFeature.ts)
+### IV.5.1. Add [`ReturnPolicyFeature`](oop-ts-shop/src/oop/products/ReturnPolicyFeature.ts)
 
 ```ts
 // src/oop/products/ReturnPolicyFeature.ts
@@ -1324,9 +1324,9 @@ export class ReturnPolicyFeature implements ProductFeature
     ...
 ```
 
-### IV.5.3. Make [validation](oop-ts-shop/src/oop/products/ProductFeature.ts)
+### IV.5.3. Make [`validation`](oop-ts-shop/src/oop/products/ProductFeature.ts)
 
-* [Product](oop-ts-shop/src/oop/products/Product.ts) cannot have two [ShippingFeatures](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+* [`Product`](oop-ts-shop/src/oop/products/Product.ts) cannot have two [`ShippingFeatures`](oop-ts-shop/src/oop/products/ShippingFeature.ts)
 
 ```ts
 // src/oop/products/ProductFeature.ts
@@ -1362,7 +1362,7 @@ export class ShippingFeature implements ProductFeature { // Already exists
 
 ## IV.6. Testing of composition
 
-### VI.6.0. Integrate new Feature in [indexRef.ts](oop-ts-shop/src/indexRef.ts) and [test](oop-ts-shop/tests/product.test.ts) for product
+### VI.6.0. Integrate new Feature in [`indexRef.ts`](oop-ts-shop/src/indexRef.ts) and [`test`](oop-ts-shop/tests/product.test.ts) for product
 
 ```ts
 // src/indexRef.ts
@@ -1378,7 +1378,7 @@ export class ShippingFeature implements ProductFeature { // Already exists
         ...
 ```
 
-### IV.6.1. Add validation in [Product](oop-ts-shop/src/oop/products/Product.ts)
+### IV.6.1. Add validation in [`Product`](oop-ts-shop/src/oop/products/Product.ts)
 
 ```ts
 // src/oop/products/Product.ts
@@ -1396,7 +1396,7 @@ export class ShippingFeature implements ProductFeature { // Already exists
     ...   
 ```
 
-### IV.6.2. [Test](oop-ts-shop/tests/product.test.ts) validation
+### IV.6.2. [`Test`](oop-ts-shop/tests/product.test.ts) validation
 
 ```ts
 // src/tests/product.test.ts
@@ -1459,7 +1459,7 @@ touch src/domain/shipping/LockerShipping.ts         ##         └── LockerS
 touch tests/shipping.test.ts                        ## └── shipping.test.ts
 ```
 
-### V.1.1. If-else [implementation](oop-ts-shop/src/domain/shipping/CalculateShipping.ts)
+### V.1.1. If-else [`implementation`](oop-ts-shop/src/domain/shipping/CalculateShipping.ts)
 
 ```ts
 // src/domain/shipping/CalculateShipping.ts
@@ -1483,7 +1483,7 @@ export function CalculateShipping(type: string, weight: number): Money {
 
 * This implementation is not scalable - adding a new shipping type requires modifying existing code!
 
-### V.1.2. Interface for [ShippingMethod](oop-ts-shop/src/domain/shipping/ShippingMethod.ts)
+### V.1.2. Interface for [`ShippingMethod`](oop-ts-shop/src/domain/shipping/ShippingMethod.ts)
 
 ```ts
 // src/domain/shipping/ShippingMethod.ts
@@ -1495,7 +1495,7 @@ export interface ShippingMethod {
 }
 ```
 
-### V.1.3. Implementation in [CourierShipping](oop-ts-shop/src/domain/shipping/CourierShipping.ts)
+### V.1.3. Implementation in [`CourierShipping`](oop-ts-shop/src/domain/shipping/CourierShipping.ts)
 
 ```ts
 // src/domain/shipping/CourierShipping.ts
@@ -1513,7 +1513,7 @@ export class CourierShipping implements ShippingMethod {
 }
 ```
 
-### V.1.4. Implementation in [PickupShipping](oop-ts-shop/src/domain/shipping/PickupShipping.ts)
+### V.1.4. Implementation in [`PickupShipping`](oop-ts-shop/src/domain/shipping/PickupShipping.ts)
 
 ```ts
 // src/domain/shipping/PickupShipping.ts
@@ -1531,7 +1531,7 @@ export class PickupShipping implements ShippingMethod {
 }
 ```
 
-### V.1.5. Implementation in [LockerShipping](oop-ts-shop/src/domain/shipping/LockerShipping.ts)
+### V.1.5. Implementation in [`LockerShipping`](oop-ts-shop/src/domain/shipping/LockerShipping.ts)
 
 ```ts
 // src/domain/shipping/LockerShipping.ts
@@ -1551,7 +1551,7 @@ export class LockerShipping implements ShippingMethod {
 
 ## V.2. Refactor of old code before using Polymorphism
 
-### V.2.0. Because [old Cart](oop-ts-shop/src/oop/Cart.ts) class is connected with [old Product](oop-ts-shop/src/oop/Product.ts) class (before Lab IV) create new structure new implementation
+### V.2.0. Because [`old Cart`](oop-ts-shop/src/oop/Cart.ts) class is connected with [`old Product`](oop-ts-shop/src/oop/Product.ts) class (before Lab IV) create new structure new implementation
 
 ```bash
                                                     ## src/
@@ -1561,7 +1561,7 @@ cp src/oop/Cart.ts src/oop/carts/Cart.ts            ##         ├── Cart.ts
 cp src/oop/CartItem.ts src/oop/carts/CartItem.ts    ##         └── CartItem.ts (new version) [cp or mv]
 ```
 
-### V.2.1. Fix imports in [new Cart](oop-ts-shop/src/oop/carts/Cart.ts) and [new CartItem](oop-ts-shop/src/oop/carts/CartItem.ts)
+### V.2.1. Fix imports in [`new Cart`](oop-ts-shop/src/oop/carts/Cart.ts) and [`new CartItem`](oop-ts-shop/src/oop/carts/CartItem.ts)
 
 ```ts
 // src/oop/carts/Cart.ts
@@ -1571,7 +1571,7 @@ import { Product } from "../products/Product";      // Import for new Product
 ...
 ```
 
-### V.2.2. Encapsulate [Product](oop-ts-shop/src/oop/products/Product.ts): add missing fields and methods from [old Product](oop-ts-shop/src/oop/Product.ts)
+### V.2.2. Encapsulate [`Product`](oop-ts-shop/src/oop/products/Product.ts): add missing fields and methods from [`old Product`](oop-ts-shop/src/oop/Product.ts)
 
 ```ts
 // src/oop/products/Product.ts
@@ -1610,7 +1610,7 @@ const product = new Product("1","Game Bundle", new Money(1000, "USD"), [...]) //
 ...
 ```
 
-### V.2.4. Fix tests for [Product](oop-ts-shop/tests/product.test.ts) with missing Money
+### V.2.4. Fix tests for [`Product`](oop-ts-shop/tests/product.test.ts) with missing Money
 
 ```ts
 // src/tests/product.test.ts
@@ -1624,7 +1624,7 @@ import { Money } from "../src/domain/Money";
 
 ## V.3. Use Polymorphism
 
-### V.3.1. Use Polymorphism in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+### V.3.1. Use Polymorphism in [`indexRef.ts`](oop-ts-shop/src/indexRef.ts)
 
 ```ts
 // src/indexRef.ts
@@ -1637,7 +1637,7 @@ const price = shippingP.calculate(2);
 console.log(price.format());
 ```
 
-### V.3.2. Integrate in [Cart](oop-ts-shop/src/oop/carts//Cart.ts)
+### V.3.2. Integrate in [`Cart`](oop-ts-shop/src/oop/carts//Cart.ts)
 
 ```ts
 // src/oop/Cart.ts
@@ -1647,7 +1647,7 @@ console.log(price.format());
   }
 ```
 
-### V.3.3. [Checkout](oop-ts-shop/src/app/Checkout.ts)
+### V.3.3. [`Checkout`](oop-ts-shop/src/app/Checkout.ts)
 
 ```ts
 // src/app/Checkout.ts
@@ -1666,7 +1666,7 @@ export class Checkout {
 }
 ```
 
-### V.3.4. Use Checkout in [indexRef.ts](oop-ts-shop/src/indexRef.ts)
+### V.3.4. Use Checkout in [`indexRef.ts`](oop-ts-shop/src/indexRef.ts)
 
 ```ts
 // src/indexRef.ts
@@ -1687,7 +1687,7 @@ console.log(`Total price with shipping: ${total.format()}`);
 
 ## Polymorphism - Tests
 
-### V.4.1. Write tests for [Checkout](oop-ts-shop/tests/shipping.test.ts)
+### V.4.1. Write tests for [`Checkout`](oop-ts-shop/tests/shipping.test.ts)
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -1876,16 +1876,16 @@ export class DroneShipping implements ShippingMethod {  // source code + export
 }
 ```
 
-### V.5.6. Instead of weight, use [``Size`](oop-ts-shop/src/domain/Size.ts) (with [`Unit`](oop-ts-shop/src/domain/Unit.ts))
+### V.5.6. Instead of weight, use [`Size`](oop-ts-shop/src/domain/Size.ts) (with [`Unit`](oop-ts-shop/src/domain/Unit.ts))
 
-* Create [Unit](oop-ts-shop/src/domain/Unit.ts)
+* Create [`Unit`](oop-ts-shop/src/domain/Unit.ts)
 
 ```ts
 // src/domain/Unit.ts
 export type Unit = "KG" | "MB";
 ```
 
-* Create [Size](oop-ts-shop/src/domain/Size.ts)
+* Create [`Size`](oop-ts-shop/src/domain/Size.ts)
 
 ```ts
 // src/domain/Size.ts
@@ -1903,7 +1903,7 @@ export class Size {
 }
 ```
 
-* Refactor [ShippingMethod](oop-ts-shop/src/domain/shipping/ShippingMethod.ts) and implementations to use Size instead of weight
+* Refactor [`ShippingMethod`](oop-ts-shop/src/domain/shipping/ShippingMethod.ts) and implementations to use Size instead of weight
 
 ```ts
 // src/domain/shipping/ShippingMethod.ts
@@ -1936,7 +1936,7 @@ import { Size } from "../Size";
 }
 ```
 
-* In [ShippingFeature](oop-ts-shop/src/oop/products/ShippingFeature.ts)
+* In [`ShippingFeature`](oop-ts-shop/src/oop/products/ShippingFeature.ts)
 
 ```ts
 // src/oop/products/ShippingFeature.ts
@@ -1946,7 +1946,7 @@ import { Size } from "../../domain/Size";
     ...
 ```
 
-* In [Cart](oop-ts-shop/src/oop/carts/Cart.ts) by new method `getTotalSize()` instead of `getTotalWeight()`
+* In [`Cart`](oop-ts-shop/src/oop/carts/Cart.ts) by new method `getTotalSize()` instead of `getTotalWeight()`
 
 ```ts
 // src/oop/carts/Cart.ts
@@ -1970,7 +1970,7 @@ import { ShippingFeature } from "../products/ShippingFeature";
   ...
 ```
 
-* In [Checkout](oop-ts-shop/src/app/Checkout.ts) by using `getTotalSize()` instead of `getTotalWeight()`
+* In [`Checkout`](oop-ts-shop/src/app/Checkout.ts) by using `getTotalSize()` instead of `getTotalWeight()`
 
 ```ts
 // src/app/Checkout.ts
@@ -1994,7 +1994,7 @@ import { Size } from "./domain/Size";
     [new ShippingFeature(new Size(1.2, "KG"))]   // <V.5.6./> 1.2 -> new Size(1.2, "KG")
 ```
 
-### V.5.7. Disable physical shipping for [virtual products](/oop-ts-shop/src/domain/shipping/DigitalShipping.ts)
+### V.5.7. Disable physical shipping for [`virtual products`](/oop-ts-shop/src/domain/shipping/DigitalShipping.ts)
 
 ```ts
 // src/domain/shipping/DigitalShipping.ts
@@ -2031,16 +2031,20 @@ export class DigitalShipping implements ShippingMethod {
 ### VI.1.0. Create structure for Lab VI
 
 ```bash
+touch src/indexVI.ts                                ## src/indexVI.ts (New file for testing Lab VI) 
                                                     ## tests/
 touch tests/results.test.ts                         ## └── results.test.ts
                                                     ## src/
                                                     ## ├──domain/
-touch src/domain/IRepository.ts                     ## |  └── IRepository.ts : 
+mkdir -p src/domain/types                           ## |   ├── types/
+touch src/domain/types/ProductDTO.ts                ## |   │   └── ProductDTO.ts
+touch src/domain/IRepository.ts                     ## |   └── IRepository.ts : 
 mkdir -p src/shared                                 ## └── shared/
+touch src/shared/Success.ts                         ##         ├── Success.ts
 touch src/shared/Result.ts                          ##         └── Result.ts
 ```
 
-### VI.1.1.1. Create [Result](oop-ts-shop/src/shared/Result.ts) type
+### VI.1.1. Create [`Result`](oop-ts-shop/src/shared/Result.ts) type
 
 ```ts
 // src/shared/Result.ts
@@ -2054,4 +2058,368 @@ export function ok<T>(data: T): Result<T, never> {
 export function fail<E>(error: E): Result<never, E> {
     return { success: false, error };
 }
+```
+
+### VI.1.2. [`Checkout`](oop-ts-shop/src/app/Checkout.ts) Refactor
+
+```ts
+// src/app/Checkout.ts
+import { Result, ok, fail } from "../shared/Result";
+
+type CheckoutError =
+| "EMPTY_CART"
+| "PAYMENT_FAILED";
+    ...
+    // Comment old calculate method 
+    calculate(cart: Cart): Result<Money, CheckoutError> {
+        if (cart.totalItems() === 0) {
+            return fail("EMPTY_CART");
+        }
+
+        // Simulate payment processing with a random success/failure outcome
+        const paymentSuccess = Math.random() > 0.5;
+
+        if (!paymentSuccess) {
+            return fail("PAYMENT_FAILED");
+        }
+
+        const shippingCost = this.shipping.calculate(
+            cart.getTotalSize(),
+            cart.totalPrice()
+        );
+
+        const totalWithShipping = cart.totalPrice().add(shippingCost);
+
+        return ok(totalWithShipping);
+    }
+    ...
+```
+
+### VI.1.3. Use Result in [`indexVI.ts`](src/indexVI.ts)
+
+```ts
+// src/indexVI.ts
+import { Checkout } from "./app/Checkout";
+import { Cart } from "./oop/carts/Cart";
+import { CourierShipping } from "./domain/shipping/CourierShipping";
+
+const cart = new Cart();
+const checkout = new Checkout(new CourierShipping());
+const result = checkout.calculate(cart);
+
+if (result.success) {
+    console.log(`Total price with shipping: ${result.data.format()}`);
+} else {
+    console.error(`Checkout failed: ${result.error}`);
+}
+```
+
+### VI.1.4. Type [`Guards`](oop-ts-shop/src/shared/Result.ts) (custom) in [`Success`](oop-ts-shop/src/shared/Success.ts)
+
+```ts
+// src/shared/Success.ts
+import { Result } from "./Result";
+
+export function isSuccess<T, E>(
+    result: Result<T, E>
+): result is { success: true; data: T } {
+    return result.success;
+}
+```
+
+## VI.2. Generics
+
+### VI.2.1. Create [`IRepository`](oop-ts-shop/src/domain/IRepository.ts) interface
+
+```ts
+// src/domain/IRepository.ts
+export interface IRepository<T> {
+    getById(id: string): Promise<T | null>;
+    list(): Promise<T[]>;
+}
+```
+
+### VI.2.2. Refactor [`IProductRepository`](oop-ts-shop/src/domain/ProductRepository.ts)
+
+```ts
+// src/domain/ProductRepository.ts
+import { Product } from "../oop/products/Product";
+import { IRepository } from "./IRepository";
+
+export interface IProductRepository extends IRepository<Product> { // Comment or remove old export
+    create(product: Product): Promise<void>;
+}
+```
+
+### VI.2.3. Implement [`InMemoryProductRepository`](oop-ts-shop/src/infra/InMemoryProductRepository.ts)
+
+```ts
+// src/infra/InMemoryProductRepository.ts 
+// Replace old implementation with new one using generics and IRepository
+import { Money } from "../domain/Money";
+import { IProductRepository } from "../domain/IProductRepository";
+import { Product } from "../oop/products/Product";
+
+export class InMemoryProductRepository implements IProductRepository {
+    private products: Product[] = [
+        new Product("1", "Laptop", new Money(300000)),
+        new Product("2", "Mouse", new Money(5000))
+    ];
+
+    async getById(id: string): Promise<Product | null> {
+        return this.products.find(p => p.id === id) ?? null;
+    }
+
+    async list(): Promise<Product[]> {
+        return this.products;
+    }
+
+    async create(product: Product): Promise<void> {
+        this.products.push(product);
+    }
+}
+```
+
+### VI.2.4. Implement [`FakeProductRepository`](oop-ts-shop/src/infra/FakeProductRepository.ts)
+
+```ts
+// src/infra/FakeProductRepository.ts
+// Replace old implementation with new one using generics and IRepository
+import { IProductRepository } from "../domain/IProductRepository";
+import { Product } from "../oop/products/Product";
+
+export class FakeProductRepository implements IProductRepository {
+    private products: Product[] = [];
+
+    async getById(id: string): Promise<Product | null> {
+        return this.products.find(p => p.id === id) ?? null;
+    }
+
+    async list(): Promise<Product[]> {
+        return this.products;
+    }
+
+    async create(product: Product): Promise<void> {
+        this.products.push(product);
+    }
+}
+```
+
+### VI.2.5. Replace any with unknown ([`Product`](oop-ts-shop/src/oop/products/Product.ts))
+
+```ts
+// src/oop/products/Product.ts
+    getFeature<T>(type: new (...args: unknown[]) =>T): T[] | undefined { // any -> unknown
+```
+
+### VI.2.6. Add type guard in data runtime [`ProductDTO`](oop-ts-shop/src/domain/types/ProductDTO.ts)
+
+```ts
+type ProductDTO = {
+    id: string;
+    name: string;
+    price: number;
+};
+
+function isProductDTO(obj: unknown): obj is ProductDTO {
+    return (
+        typeof obj === 'object' &&
+        obj !== null &&
+        "id" in obj &&
+        "name" in obj &&
+        "price" in obj
+    );
+}
+```
+
+## VI.3. Tests for Result and Generics
+
+### VI.3.1. Write [`Results Test`](oop-ts-shop/tests/results.test.ts)
+
+```ts
+import { describe, it, expect } from "vitest";
+import { ok, fail } from "../src/shared/Result";
+
+describe("Result", () => {
+  it ("returns success", () => {
+    const result = ok(123);
+
+    expect(result.success).toBe(true);
+  });
+
+  it("returns failure", () => {
+    const result = fail("Error");
+
+    expect(result.success).toBe(false)
+  });
+});
+```
+
+### VI.3.2. Run the tests
+
+```bash
+npx vitest tests/results.test.ts
+```
+
+### VI.3.3. Expected Test Output
+
+```bash
+  ✓ tests/results.test.ts (2 tests) 11ms
+   ✓ Result (2)
+     ✓ returns success 6ms
+     ✓ returns failure 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+      ...
+```
+
+### VI.3.4. Mandatory task
+
+To-do                           | Status    | Reference
+---                             | ---       | ---
+Implement `Result`              | ✅        | [`VI.1.1.`](#vi11-create-result-type)
+`Checkout` without exceptions   | ✅        | [`VI.1.2.`](#vi12-checkout-refactor)
+Type guards                     | ✅        | [`VI.1.4.`](#vi14-type-guards-custom-in-success) - [`VI.2.6.`](#vi26-add-type-guard-in-data-runtime-productdto)
+Generic repo                    | ✅        | [`VI.2.1.`](#vi21-create-irepository-interface) - [`VI.2.4.`](#vi24-implement-fakeproductrepository)
+Without `any`                   | ✅        | [`VI.2.5.`](#vi25-replace-any-with-unknown-product)
+
+## VI.4. Additional tasks
+
+### VI.4.1. Add `map()` to [`Result`](oop-ts-shop/src/shared/Result.ts)
+
+```ts
+// src/shared/Result.ts
+...
+// map : translate the data of a successful result
+export function map<T, E, U>(
+    result: Result<T, E>,
+    fn: (value: T) => U
+): Result<U, E> {
+    return result.success ? ok(fn(result.data)) : result;
+}
+```
+
+### VI.4.2. Add `flatMap()`
+
+```ts
+// src/shared/Result.ts
+...
+// flatMAp : fn returns another Result (for chaining operations)
+export function flatMap<T, E, U, F = E>(
+    result: Result<T, E>,
+    fn: (value: T) => Result<U, F>
+): Result<U, E | F> {
+    return result.success ? fn(result.data) : result;
+}
+```
+
+### VI.4.3. Add `unwrap()`
+
+```ts
+// src/shared/Result.ts
+...
+// unwrap : return the data or throw an error
+export function unwrap<T, E>(result: Result<T, E>): T {
+    if (result.success) return result.data;
+    throw new Error(`Unwrap failed: ${String(result.error)}`);
+}
+```
+
+### VI.4.4. Add `match()`
+
+```ts
+// src/shared/Result.ts
+...
+export function match<T, E, R>(
+    result: Result<T, E>,
+    hendlers: {
+        ok: (data: T) => R;
+        fail: (error: E) => R;
+    }
+): R {
+    return result.success 
+    ? hendlers.ok(result.data)
+    : hendlers.fail(result.error);
+}
+```
+
+### VI.4.5. Example in [`indexVI.ts`](oop-ts-shop/src/indexVI.ts)
+
+```ts
+// src/indexVI.ts
+import { fail, flatMap, map, match, ok, Result, unwrap } from "./shared/Result"; // <VI.4.5./>
+...
+type CheckoutError = "EMPTY_CART" | "PAYMENT_FAILED";
+
+function parseQty(input: string): Result<number, "INVALID_QTY"> {
+    const n = Number(input);
+    return Number.isInteger(n) && n > 0 ? ok(n) : fail("INVALID_QTY");
+}
+
+function calculatePrice(qty: number): Result<number, CheckoutError> {
+    if (qty === 0) return fail("EMPTY_CART");
+    return ok(qty * 100);
+}
+
+const result2 = flatMap(parseQty("3"), calculatePrice);
+
+// map
+const formatted = map(result, (price) => `${price} PLN`);
+
+// match
+const message = match(formatted, {
+    ok: (text) => `Do zaplaty: ${text}`,
+    fail: (err) => `Blad: ${err}`,
+});
+
+console.log(message);
+
+// unwrap: (example tests / places where "it must succeed")
+const value = unwrap(result); // number or throw 
+console.log(value);
+```
+
+### VI.4.6. Run the code
+
+```bash
+npx ts-node src/indexVI.ts
+```
+
+### VI.4.7. Error in Output
+
+```bash
+...
+src/oop/carts/Cart.ts:61:46 - error TS2345
+...
+```
+
+### VI.4.8. Fix error with replacement any [`Ref VI.2.5.`](#vi25-replace-any-with-unknown-product) in [`Product.ts`](oop-ts-shop/src/oop/products/Product.ts)
+
+Use `never[]` instead of `unknown` to bypass constructor parameter checks while keeping 100% type safety and avoiding "dirty" casting
+
+```ts
+... 
+    getFeature<T extends ProductFeature>(
+        type: abstract new (...args: never[]) => T
+    ): T[] | undefined {
+        return this._features.filter(
+            (f): f is T => f instanceof type
+        );
+    }
+...
+```
+
+### VI.4.9. Run the code again
+
+```bash
+npx ts-node src/indexVI.ts
+```
+
+### VI.4.10. Expected Output (Expected empty cart error)
+
+```bash
+Checkout failed: EMPTY_CART
+Error: EMPTY_CART
+...
 ```
