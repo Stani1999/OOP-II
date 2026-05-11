@@ -69,4 +69,10 @@ export class Cart {
     return new Size(totalKG, "KG");
   }
   // </V.5.5.>
+
+  // <VII.3.2.>
+    clear(): void {
+      this.items = [];
+  }
+  // </VII.3.2.>
 }

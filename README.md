@@ -2423,3 +2423,283 @@ Checkout failed: EMPTY_CART
 Error: EMPTY_CART
 ...
 ```
+
+## **Lab VII: Use-case layer and application architecture**
+
+## VII.1. Use-case layer
+
+### VII.1.0. Create application structure
+
+tests/addToCart.test.ts
+
+```bash
+                                                    ## tests/
+touch tests/addToCart.test.ts                       ## └── addToCart.test.ts
+                                                    ## src/
+touch src/indexVII.ts                               ## ├── indexVII.ts
+                                                    ## └── app/
+touch src/app/AddToCart.ts                          ##     └── AddToCart.ts 
+```
+
+### VII.1.1. Create first Use-case: [`AddToCart`](oop-ts-shop/src/app/AddToCart.ts)
+
+```ts
+//src/app/AddToCart.ts
+import { Cart } from "../oop/carts/Cart";
+import { IProductRepository } from "../domain/IProductRepository";
+import { Result, ok, fail } from "../shared/Result";
+
+type AddToCartError = 
+    | "PRODUCT_NOT_FOUND"
+    | "INVALID_QUANTITY";
+
+export class AddToCart {
+    constructor(
+        private readonly repo: IProductRepository,
+        private readonly cart: Cart
+    ) {}
+
+    async execute(
+        productId: string,
+        quantity: number
+    ): Promise<Result<void, AddToCartError>> {
+        if (quantity <= 0) {
+            return fail("INVALID_QUANTITY");
+        }
+
+        const product = await this.repo.getById(productId);
+
+        if (!product) {
+            return fail("PRODUCT_NOT_FOUND");
+        }
+
+        this.cart.add(product, quantity);
+
+        return ok(undefined);
+    }
+}
+```
+
+### VII.1.2. Use Case: [`Checkout`](oop-ts-shop/src/app/Checkout.ts)
+
+Gather all checkout logic in one place
+
+```ts
+// src/app/Checkout.ts
+...
+        private readonly cart: Cart, // Add cart to constructor as first parameter
+        ...
+// Replacae all lines below constructor with new logic:
+    execute(): Result<Money, CheckoutError> {
+        if (this.cart.totalItems() === 0) {
+            return fail("EMPTY_CART");
+        }
+
+        const total = this.cart.totalPrice();
+        const shippingCost = this.shipping.calculate(
+            this.cart.getTotalSize(),
+            total
+        );
+
+        return ok(total.add(shippingCost));
+    }    
+```
+
+### VII.1.3. Show layer separation in [`indexVII.ts`](oop-ts-shop/src/indexVII.ts)
+
+```ts
+// src/indexVII.ts
+import { InMemoryProductRepository } from "./infra/InMemoryProductRepository";
+import { Cart } from "./oop/carts/Cart";
+import { AddToCart } from "./app/AddToCart";
+import { Checkout } from "./app/Checkout";
+import { CourierShipping } from "./domain/shipping/CourierShipping";
+
+async function main() {
+    const repo = new InMemoryProductRepository();
+    const cart = new Cart();
+
+    const addToCart = new AddToCart(repo, cart);
+    await addToCart.execute("1", 2);
+
+    const checkout = new Checkout(cart, new CourierShipping());
+    const result = checkout.execute();
+
+    if (result.success) {
+        console.log("Total:", result.data.format());
+    } else {
+        console.log("Error:", result.error);
+    }
+}
+
+main();
+```
+
+### VII.1.4. Run the code
+
+```bash
+npx ts-node src/indexVII.ts
+```
+
+### VII.1.5. Expected Output (If [`InMemoryProductRepository`](oop-ts-shop/src/infra/InMemoryProductRepository.ts) is like in [`VI.2.3.`](#vi23-implement-inmemoryproductrepository))
+
+```bash
+Total: 6000.00 PLN
+```
+
+## VII.2. Use-Case Layer - Tests
+
+### VII.2.1. Write tests for [`AddToCart`](oop-ts-shop/tests/addToCart.test.ts)
+
+```ts
+import { describe, it, expect } from "vitest";
+import { AddToCart } from "../src/app/AddToCart";
+import { InMemoryProductRepository } from "../src/infra/InMemoryProductRepository";
+import { Cart } from "../src/oop/carts/Cart";
+
+describe("AddToCart", () => {
+    it("adds product to cart", async () => {
+        const repo = new InMemoryProductRepository();
+        const cart = new Cart();
+        const useCase = new AddToCart(repo, cart);
+
+        const result = await useCase.execute("1", 2);
+
+        expect(result.success).toBe(true);
+        expect(cart.totalItems()).toBe(2);
+    });
+});
+```
+
+### VII.2.2. Run the tests
+
+```bash
+npx vitest tests/addToCart.test.ts
+```
+
+### VII.2.3. Expected Test Output
+
+```bash
+ ✓ tests/addToCart.test.ts (1 test) 11ms
+   ✓ AddToCart (1)
+     ✓ adds product to cart 7ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+```
+
+### VII.2.4. Mandatory task
+
+To-do                           | Status    | Reference
+---                             | ---       | ---
+Use-case `AddToCart`            | ✅        | [`VII.1.1.`](#vii11-create-first-use-case-addtocart)
+Use-case `Checkout`             | ✅        | [`VII.1.2.`](#vii12-use-case-checkout)
+`indexVII.ts` without logic     | ✅        | [`VII.1.3.`](#vii13-show-layer-separation-in-indexviits)
+Result without exceptions       | ✅        | [`VII.1.2.`](#vii12-use-case-checkout)
+Use-Case test                   | ✅        | [`VII.2.`](#vii2-use-case-layer---tests)
+
+## Additional tasks - Use-case layer
+
+### VII.3.0. Use-Case Aditional Tasks Structure
+
+```bash
+                                                    ## src/
+                                                    ## └── app/
+touch src/app/RemoveFromCart.ts                     ##     └── RemoveFromCart.ts
+touch src/app/ClearCart.ts                          ##     └── ClearCart.ts
+```
+
+### VII.3.1. Add [`RemoveFromCart`](oop-ts-shop/src/app/RemoveFromCart.ts)
+
+```ts
+// src/app/RemoveFromCart.ts
+import { Cart } from "../oop/carts/Cart";
+import { Result, ok } from "../shared/Result";
+
+export class RemoveFromCart {
+    constructor(private readonly cart: Cart) {}
+
+    execute(productId: string): Result<void, never> {
+        this.cart.remove(productId);
+        return ok(undefined);
+    }
+}
+```
+
+### VII.3.2. Add [`ClearCart`](oop-ts-shop/src/app/ClearCart.ts)
+
+```ts
+// src/app/ClearCart.ts
+import { Cart } from "../oop/carts/Cart";
+import { Result, ok } from "../shared/Result";
+
+export class ClearCart {
+    constructor(private readonly cart: Cart) {}
+
+    execute(): Result<void, never> {
+        this.cart.clear(); 
+        return ok(undefined);
+    }
+}
+```
+
+* Add missing `clear()` methods to [`Cart`](oop-ts-shop/src/oop/carts/Cart.ts)
+
+```ts
+// src/oop/carts/Cart.ts
+    ...
+    // Method to clear all items from the cart
+    clear(): void {
+        this.items = [];
+    }
+  ...
+```
+
+### VII.3.3. Add logs (console.log) only in [UI](oop-ts-shop/src/indexVII.ts)
+
+```ts
+// src/indexVII.ts
+import { ClearCart } from "./app/ClearCart"; 
+import { RemoveFromCart } from "./app/RemoveFromCart";
+... 
+    const addResult = await addToCart.execute("1", 2); // <VII.3.3./> Add prefix const addResult =
+
+    if (addResult.success) {
+        console.log("Log: Product added to cart.");
+    } else {
+        console.log("Log Error:", addResult.error);
+    }
+
+    // Logs for RemoveFromCart
+    const removeFromCart = new RemoveFromCart(cart);
+    const removeResult = removeFromCart.execute("1");
+
+    if (removeResult.success) {
+        console.log("Log: Product removed from cart.");
+    } else {
+        console.log("Log Error:", removeResult.error);
+    }
+
+    // Logs for ClearCart
+    const clearCart = new ClearCart(cart);
+    clearCart.execute();
+    console.log("Log: Cart has been cleared.");
+
+    // Re-adding product so checkout has data after clear
+    await addToCart.execute("1", 1);
+```
+
+### VII.3.4. Add maximum quantity validation
+
+```ts
+// src/app/AddToCart.ts
+    ...
+    | "EXCEEDS_MAX_QUANTITY" // <VII.3.4.>
+    ...
+        const MAX_QUANTITY = 10;
+
+        if (quantity > MAX_QUANTITY) {
+            return fail("EXCEEDS_MAX_QUANTITY"); 
+        }
+    ...
+```
