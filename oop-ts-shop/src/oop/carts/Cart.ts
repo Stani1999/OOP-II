@@ -75,4 +75,10 @@ export class Cart {
       this.items = [];
   }
   // </VII.3.2.>
+  
+  // <VIII.2.2.>
+  getItems(): CartItem[] {
+      return this.items;
+  }
+  // </VIII.2.2.>
 }

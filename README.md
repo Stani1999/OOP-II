@@ -816,12 +816,12 @@ npx vitest tests/listProducts.test.ts
 ### III.1.0. Create structure for Value Object
 
 ```bash
+                                                    ## tests/ 
+touch tests/money.test.ts                           ## └── money.test.ts
                                                     ## src/ 
                                                     ## └── domain/
 touch src/domain/Money.ts                           ##     ├── Money.ts
 touch src/domain/Currency.ts                        ##     └── Currency.ts
-                                                    ## tests/ 
-touch tests/money.test.ts                           ## └── money.test.ts
 ```
 
 ### III.1.1. Step 1. Create [`Value Object`](oop-ts-shop/src/domain/Money.ts)
@@ -2662,7 +2662,7 @@ export class ClearCart {
 import { ClearCart } from "./app/ClearCart"; 
 import { RemoveFromCart } from "./app/RemoveFromCart";
 ... 
-    const addResult = await addToCart.execute("1", 2); // <VII.3.3./> Add prefix const addResult =
+    const addResult = await addToCart.execute("1", 2); // <VII.3.3./> Add prefix 'const addResult ='
 
     if (addResult.success) {
         console.log("Log: Product added to cart.");
@@ -2702,4 +2702,439 @@ import { RemoveFromCart } from "./app/RemoveFromCart";
             return fail("EXCEEDS_MAX_QUANTITY"); 
         }
     ...
+```
+
+## **Lab VIII: SOLID (SRP & God Object Refactoring)**
+
+## VIII.1. Component Extraction (SRP)
+
+### VIII.1.0. Create structure for new services
+
+```bash
+                                                    ## tests/
+touch tests/checkout.test.ts                        ## └── checkout.test.ts
+                                                    ## src/
+                                                    ## ├── domain/
+touch src/domain/IOrderRepository.ts                ## |   ├── IOrderRepository.ts
+mkdir -p src/domain/services                        ## |   └── services/
+touch src/domain/services/PaymentService.ts         ## |       ├── PaymentService.ts
+touch src/domain/services/NotificationService.ts    ## |       ├── NotificationService.ts
+touch src/domain/services/CartValidator.ts          ## |       └── CartValidator.ts
+                                                    ## └── infra/
+touch src/infra/FakeOrderRepository.ts              ##     └── FakeOrderRepository.ts
+```
+
+### VIII.1.1. Starting point: Suggested `OrderService` for refactoring
+
+```ts
+// Never used, only for refactoring demonstration
+export class OrderService {
+    constructor(
+        private readonly repo: IOrderRepository
+    ) {}
+    async checkout(cart: Cart): Promise<number> {
+        if (cart.totalItems() === 0) {
+            throw new Error("Empty cart");
+    }
+    
+    const total = cart.totalPrice();
+    
+    // payment
+    const paymentSuccess = Math.random() > 0.5;
+        if (!paymentSuccess) {
+            throw new Error("Payment failed");
+    }
+    
+    // save
+    await this.repo.save({
+        items: cart.getItems(),
+        total
+    });
+    // notification
+    console.log("Email sent");
+    
+    return total.amount;
+    }
+}
+```
+
+### VIII.1.2. Extract [`PaymentService`](/oop-ts-shop/src/domain/services/PaymentService.ts)
+
+```ts
+// src/domain/services/PaymentService.ts
+import { Money } from "../Money";
+
+export class PaymentService {
+    pay(amount: Money): boolean {
+        return Math.random() > 0.5;
+    }
+}
+```
+
+### VIII.1.3. Extract [`IOrderRepository`](/oop-ts-shop/src/domain/IOrderRepository.ts)
+
+```ts
+// src/domain/IOrderRepository.ts
+export interface IOrderRepository {
+    save(order: any): Promise<void>;
+}
+```
+
+### VIII.1.4. Extract [`NotificationService`](/oop-ts-shop/src/domain/services/NotificationService.ts)  
+
+```ts
+// src/domain/services/NotificationService.ts
+export class NotificationService {
+    send(): void {
+        console.log("Email sent");
+    }
+}
+```
+
+### VIII.1.5. Extract [`CartValidator`](/oop-ts-shop/src/domain/services/CartValidator.ts)
+
+```ts
+// src/domain/services/CartValidator.ts
+import { Cart } from "../../oop/carts/Cart";
+
+export class CartValidator {
+    validate(cart: Cart): boolean {
+        return cart.totalItems() > 0;
+    }
+}
+```
+
+## VIII.2. New Use Case
+
+### VIII.2.1. Refactor [`Checkout`](/oop-ts-shop/src/app/Checkout.ts) to use new services
+
+```ts
+// src/app/Checkout.ts
+// Replace old code with new one using new extracted services
+import { Result, ok, fail } from "../shared/Result";
+import { Cart } from "../oop/carts/Cart";
+import { PaymentService } from "../domain/services/PaymentService";
+import { IOrderRepository } from "../domain/IOrderRepository";
+import { NotificationService } from "../domain/services/NotificationService";
+import { CartValidator } from "../domain/services/CartValidator";
+
+type CheckoutError = "EMPTY_CART" | "PAYMENT_FAILED";
+
+export class Checkout {
+    constructor(
+        private readonly payment: PaymentService,
+        private readonly repo: IOrderRepository,
+        private readonly notifier: NotificationService,
+        private readonly validator: CartValidator
+    ) {}
+
+    async execute(cart: Cart): Promise<Result<void, CheckoutError>> {
+        if (!this.validator.validate(cart)) {
+            return fail("EMPTY_CART");
+        }
+
+        const total = cart.totalPrice();
+        const success = this.payment.pay(total);
+
+        if (!success) {
+            return fail("PAYMENT_FAILED");
+        }
+
+        await this.repo.save({
+            items: cart.getItems(),
+            total
+        });
+
+        this.notifier.send();
+
+        return ok(undefined);
+    }
+}
+```
+
+### VIII.2.2. Add missing `getItems()` method to [`Cart`](oop-ts-shop/src/oop/carts/Cart.ts)
+
+```ts
+// src/oop/carts/Cart.ts
+    ...
+    getItems(): CartItem[] {
+        return this.items;
+    }
+    ...
+```
+
+## VIII.3. Tests for Lab VIII
+
+### VIII.3.1. Write [tests](oop-ts-shop/tests/checkout.test.ts) for new `Checkout`
+
+```ts
+tests/checkout.test.ts
+import { describe, it, expect } from "vitest";
+import { Checkout } from "../src/app/Checkout";
+import { Cart } from "../src/oop/carts/Cart";
+import { PaymentService } from "../src/domain/services/PaymentService";
+import { NotificationService } from "../src/domain/services/NotificationService";
+import { CartValidator } from "../src/domain/services/CartValidator";
+
+describe("Checkout", () => {
+    it("fails for empty cart", async () => {
+        const checkout = new Checkout(
+            new PaymentService(),
+            new FakeOrderRepository(),
+            new NotificationService(),
+            new CartValidator()
+        );
+
+        const result = await checkout.execute(new Cart());
+
+        expect(result.success).toBe(false);
+    });
+});
+```
+
+### VIII.3.2. Add missing [`FakeOrderRepository`](oop-ts-shop/src/infra/FakeOrderRepository.ts) for testing
+
+```ts
+// src/infra/FakeOrderRepository.ts
+import { IOrderRepository } from "../src/domain/IOrderRepository";
+
+export class FakeOrderRepository implements IOrderRepository {
+    async save(order: any): Promise<void> {}
+}
+```
+
+### VIII.3.3. Add missing import to [checkout test](oop-ts-shop/tests/checkout.test.ts)
+
+```ts
+// tests/checkout.test.ts
+...
+import { FakeOrderRepository } from "../src/infra/FakeOrderRepository"
+...
+```
+
+### VIII.3.4. Run the tests
+
+```bash
+npx vitest tests/checkout.test.ts
+```
+
+### VIII.3.5. Expected Test Output
+
+```bash
+ ✓ tests/checkout.test.ts (1 test) 4ms
+   ✓ Checkout (1)
+     ✓ fails for empty cart 2ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
+```
+
+### VIII.3.6. Mandatory tasks
+
+To-do                                   | Status    | Reference
+---                                     | ---       | ---
+efactor `OrderService` → `Checkout`     | ✅        | [`VIII.2.1.`](#viii21-refactor-checkout-to-use-new-services)
+Extract `PaymentService`                | ✅        | [`VIII.1.1.`](#viii11-starting-point-suggested-orderservice-for-refactoring)
+Extract `NotificationService`           | ✅        | [`VIII.1.3.`](#viii13-extract-iorderrepository)
+Extract `Validator`                     | ✅        | [`VIII.1.4.`](#viii14-extract-notificationservice)
+Use `Result<T, E>`                      | ✅        | [`VIII.2.1.`](#viii21-refactor-checkout-to-use-new-services)
+Test                                    | ✅        | [`VIII.3.2.`](#viii32-add-missing-fakeorderrepository-for-testing)
+
+## VIII.4. Additional tasks
+
+### VIII.4.0. Create structure for additional tasks
+
+```bash
+                                                    ## src/
+                                                    ## ├── domain/
+mkdir -p src/domain/payment                         ## |   ├── payment/
+touch src/domain/payment/IPaymentService.ts         ## |   |   ├── IPaymentService.ts
+touch src/domain/payment/CreditCardPayment.ts       ## |   |   ├── CreditCardPayment.ts
+touch src/domain/payment/BlikPayment.ts             ## |   |   └── BlikPayment.ts
+                                                    ## |   └── services/
+touch src/domain/services/DiscountService.ts        ## |       ├── DiscountService.ts
+touch src/domain/services/LoggingService.ts         ## |       └── LoggingService.ts
+```
+
+### VIII.4.1. Add [`DiscountService`](oop-ts-shop/src/domain/services/DiscountService.ts)
+
+```ts
+// src/domain/services/DiscountService.ts
+import { Money } from "../Money";
+
+export class DiscountService {
+    applyDiscount(total: Money, percent: number): Money {
+        return total.multiply((100 - percent) / 100);
+    }
+}
+```
+
+### VIII.4.2. Add [`LoggingService`](oop-ts-shop/src/domain/services/LoggingService.ts)
+
+```ts
+// src/domain/services/LoggingService.ts
+export class LoggingService {
+    log(message: string): void {
+        console.log(`[LOG]: ${message}`);
+    }
+}
+```
+
+### VIII.4.3. Create [`IPaymentService`](oop-ts-shop/src/domain/payment/IPaymentService.ts) interface (DIP preparation)
+
+```ts
+// src/domain/payment/IPaymentService.ts
+import { Money } from "../Money";
+import { Result } from "../../shared/Result";
+
+export type PaymentError = 
+| "PAYMENT_FAILED" 
+| "CURRENCY_MISMATCH";
+
+export interface IPaymentService {
+    pay(amount: Money): Promise<Result<void, PaymentError>>;
+    name(): string;
+}
+```
+
+### VIII.4.4. Add [`CreditCardPayment`](oop-ts-shop/src/domain/payment/CreditCardPayment.ts)
+
+```ts
+// src/domain/payment/CreditCardPayment.ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok, fail } from "../../shared/Result";
+
+export class CreditCardPayment implements IPaymentService {
+
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        console.log(`Credit Card charged ${amount.format()}`);
+        return Math.random() > 0.5 ? ok(undefined) : fail("PAYMENT_FAILED"); // Simulate random payment success/failure
+    }
+
+    name(): string {
+        return "Credit Card";
+    }
+}
+```
+
+### VIII.4.5. Add [`BlikPayment`](oop-ts-shop/src/domain/payment/BlikPayment.ts)
+
+```ts
+// src/domain/payment/BlikPayment.ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok, fail } from "../../shared/Result";
+
+export class BlikPayment implements IPaymentService {
+
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        console.log(`Blik charged ${amount.format()}`);
+        return Math.random() > 0.5 ? ok(undefined) : fail("PAYMENT_FAILED"); // Simulate random payment success/failure
+    }
+
+    name(): string {
+        return "Blik";
+    }
+}
+```
+
+## VIII.5. Integrate new services
+
+### VIII.5.1. Refactor [`Checkout`](oop-ts-shop/src/app/Checkout.ts) to use `IPaymentService` and new services
+
+```ts
+// src/app/Checkout.ts
+...
+// Add imports for new services and interfaces
+import { IPaymentService } from "../domain/payment/IPaymentService";
+import { DiscountService } from "../domain/services/DiscountService";
+import { LoggingService } from "../domain/services/LoggingService";
+...
+    constructor(
+        // Change type to IPaymentService
+        private readonly payment: IPaymentService,
+        ...
+        // Add new services to constructor
+        ,private readonly discountService: DiscountService,
+        private readonly logger: LoggingService
+    ) {}
+
+    async execute(cart: Cart): Promise<Result<void, CheckoutError>> {
+        this.logger.log("Starting checkout process"); // Add Log at the beginning of execute method
+
+        if (!this.validator.validate(cart)) {
+            this.logger.log("Checkout failed: Cart is empty"); // Add Log validation failure in execute method
+            return fail("EMPTY_CART");
+        }
+
+        const total = cart.totalPrice();
+
+        // Add discount application and update payment logic to handle Result type
+        const discountedTotal = this.discountService.applyDiscount(total, 10);
+        const paymentResult = await this.payment.pay(discountedTotal);
+
+        // Replace old payment logic
+
+        // Add Log payment failure in execute method
+        if (!paymentResult.success) {
+            this.logger.log("Checkout failed: Payment unsuccessful");
+            return fail("PAYMENT_FAILED");
+        }
+
+        await this.repo.save({
+            items: cart.getItems(),
+            total: discountedTotal // total -> total: discountedTotal
+        });
+
+        this.notifier.send();
+        this.logger.log("Checkout completed successfully"); // Add log at the end of execute method
+
+        return ok(undefined);
+    }
+}
+```
+
+### VIII.5.2. Update [Checkout test](oop-ts-shop/tests/checkout.test.ts) to use new `Checkout` constructor
+
+```ts
+// tests/checkout.test.ts
+...
+// import { PaymentService } from "../src/domain/services/PaymentService"; // <VIII.5.2.> Remove PaymentService
+...
+// Add imports for new services and interfaces
+import { CreditCardPayment } from "../src/domain/payment/CreditCardPayment";
+import { DiscountService } from "../src/domain/services/DiscountService";
+import { LoggingService } from "../src/domain/services/LoggingService";
+
+            ...
+            new CreditCardPayment(), // PaymentService -> CreditCardPayment
+            ...
+            // Add new services to the constructor
+            ,new DiscountService(),
+            new LoggingService()
+            ...
+```
+
+### VIII.5.3. Run the tests
+
+```bash
+npx vitest tests/checkout.test.ts
+```
+
+### VIII.5.4. Expected Test Output
+
+```bash
+stdout | tests/checkout.test.ts > Checkout > fails for empty cart
+[LOG]: Starting checkout process
+[LOG]: Checkout failed: Cart is empty
+
+ ✓ tests/checkout.test.ts (1 test) 5ms
+   ✓ Checkout (1)
+     ✓ fails for empty cart 4ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
 ```
