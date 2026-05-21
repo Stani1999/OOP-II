@@ -1,7 +1,7 @@
 //Lab VIII.1.2.
 import { Result, ok, fail } from "../shared/Result";
 import { Cart } from "../oop/carts/Cart";
-import { PaymentService } from "../domain/services/PaymentService";
+// import { PaymentService } from "../domain/services/PaymentService"; // <VIII.5.1.>
 import { IOrderRepository } from "../domain/IOrderRepository";
 import { NotificationService } from "../domain/services/NotificationService";
 import { CartValidator } from "../domain/services/CartValidator";
@@ -10,6 +10,7 @@ import { IPaymentService } from "../domain/payment/IPaymentService";
 import { DiscountService } from "../domain/services/DiscountService";
 import { LoggingService } from "../domain/services/LoggingService";
 // </VIII.5.1.>
+
 
 type CheckoutError = 
 |"EMPTY_CART" 
@@ -39,7 +40,7 @@ export class Checkout {
         const total = cart.totalPrice();
 
         // <VIII.5.1.> Add discount application and update payment logic to handle Result type
-        const discountedTotal = this.discountService.applyDiscount(total, 10);
+        const discountedTotal = this.discountService.applyDiscount(total);
         const paymentResult = await this.payment.pay(discountedTotal);
 
         // <VIII.5.1.> Replace old payment logic

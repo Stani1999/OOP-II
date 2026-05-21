@@ -14,7 +14,7 @@ This repository contains educational projects for the **Object-Oriented Programm
 **`<X.Y.Z.>`**      | Start of code change related to X.Y.Z.
 **`</X.Y.Z.>`**     | End of code change related to X.Y.Z.
 **`<X.Y.Z./>`**     | Single line code change related to X.Y.Z.
- 
+
 ### I.1.1. Project Setup
 
 ```bash
@@ -2964,8 +2964,11 @@ touch src/domain/services/LoggingService.ts         ## |       └── Logging
 import { Money } from "../Money";
 
 export class DiscountService {
-    applyDiscount(total: Money, percent: number): Money {
-        return total.multiply((100 - percent) / 100);
+    constructor(private readonly percentage: number) {}
+
+    applyDiscount(total: Money): Money {
+        const discountAmount = Math.round(total.amount * (this.percentage / 100));
+        return new Money(total.amount - discountAmount, total.currency);
     }
 }
 ```
@@ -3019,7 +3022,7 @@ export class CreditCardPayment implements IPaymentService {
 }
 ```
 
-### VIII.4.5. Add [`BlikPayment`](oop-ts-shop/src/domain/payment/BlikPayment.ts)
+### VIII.4.5. Add Own Payment Method: [`BlikPayment`](oop-ts-shop/src/domain/payment/BlikPayment.ts)
 
 ```ts
 // src/domain/payment/BlikPayment.ts
@@ -3072,7 +3075,7 @@ import { LoggingService } from "../domain/services/LoggingService";
         const total = cart.totalPrice();
 
         // Add discount application and update payment logic to handle Result type
-        const discountedTotal = this.discountService.applyDiscount(total, 10);
+        const discountedTotal = this.discountService.applyDiscount(total);
         const paymentResult = await this.payment.pay(discountedTotal);
 
         // Replace old payment logic
@@ -3112,7 +3115,7 @@ import { LoggingService } from "../src/domain/services/LoggingService";
             new CreditCardPayment(), // PaymentService -> CreditCardPayment
             ...
             // Add new services to the constructor
-            ,new DiscountService(),
+            ,new DiscountService(10),
             new LoggingService()
             ...
 ```
@@ -3138,3 +3141,596 @@ stdout | tests/checkout.test.ts > Checkout > fails for empty cart
       Tests  1 passed (1)
       ...
 ```
+
+## **Lab IX: SOLID (DIP + Strategy Pattern)**
+
+## IX.1. Dependency Inversion & Strategy Pattern
+
+### IX.1.0. Create structure for Payment Methods
+
+```bash
+                                            ## src/
+                                            ## └── domain/
+mkdir -p src/domain/payment                 ##     └── payment/
+touch src/domain/payment/CryptoPayment.ts   ##         ├── CryptoPayment.ts
+touch src/domain/payment/FakePayment.ts     ##         ├── FakePayment.ts
+touch src/domain/payment/StripePayment.ts   ##         ├── StripePayment.ts
+touch src/domain/payment/PayPalPayment.ts   ##         └── PayPalPayment.ts
+touch src/indexIX.ts                        ## src/indexIX.ts
+```
+
+### IX.1.1. Strategy Interface: [`IPaymentService`](oop-ts-shop/src/domain/payment/IPaymentService.ts)
+
+#### Already created in [VIII.4.3.](#viii43-create-ipaymentservice-interface-dip-preparation)
+
+```ts
+// src/domain/payment/IPaymentService.ts
+import { Money } from "../Money";
+import { Result } from "../../shared/Result";
+
+export type PaymentError = 
+| "PAYMENT_FAILED" 
+| "CURRENCY_MISMATCH";
+
+export interface IPaymentService {
+    pay(amount: Money): Promise<Result<void, PaymentError>>;
+    name(): string;
+}
+```
+
+### IX.1.2. Implement [`StripePayment`](oop-ts-shop/src/domain/payment/StripePayment.ts)
+
+```ts
+// src/domain/payment/StripePayment.ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok, fail } from "../../shared/Result";
+
+export class StripePayment implements IPaymentService {
+    async pay(
+        amount: Money
+    ): Promise<Result<void, PaymentError>> {
+
+        console.log(
+            `Stripe charged ${amount.format()}`
+        );
+        
+        const success = Math.random() > 0.5;
+        
+        return success 
+            ? ok(undefined) 
+            : fail("PAYMENT_FAILED");
+    }
+
+    name(): string {
+        return "Stripe";
+    }
+}
+```
+
+### IX.1.3. Implement [`PayPalPayment`](oop-ts-shop/src/domain/payment/PayPalPayment.ts)
+
+```ts
+// src/domain/payment/PayPalPayment.ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok } from "../../shared/Result";
+
+export class PayPalPayment implements IPaymentService {
+    async pay(
+        amount: Money
+        ) {
+        console.log(
+            `PayPal charged ${amount.format()}`
+        );
+    return ok(undefined);
+    }
+    name(): string {
+        return "PayPal";
+    }
+}
+```
+
+## IX.2. Use new payment strategies
+
+### IX.2.1. Refactor [`Checkout`](oop-ts-shop/src/app/Checkout.ts) to use `IPaymentService` implementations
+
+#### Already done in [VIII.5.1.](#viii51-refactor-checkout-to-use-ipaymentservice-and-new-services)
+
+* Refactor `Checkout` to depend on `IPaymentService` interface instead of concrete implementations and use it in the constructor
+
+### IX.2.2. Create Composition Root ([indexIX](oop-ts-shop/src/indexIX.ts))
+
+```ts
+import { StripePayment } from "./domain/payment/StripePayment";
+import { Checkout } from "./app/Checkout";
+import { Cart } from "./oop/carts/Cart";
+import { Product } from "./oop/products/Product";
+import { Money } from "./domain/Money";
+import { FakeOrderRepository } from "./infra/FakeOrderRepository";
+import { NotificationService } from "./domain/services/NotificationService";
+import { CartValidator } from "./domain/services/CartValidator";
+import { DiscountService } from "./domain/services/DiscountService";
+import { LoggingService } from "./domain/services/LoggingService";
+
+async function main() {
+    const cart = new Cart();
+    const product = new Product("1", "Laptop", new Money(5000, "PLN"));
+    
+    cart.add(product, 1);
+
+    const payment = new StripePayment();
+    const repo = new FakeOrderRepository();
+    const notifier = new NotificationService();
+    const validator = new CartValidator();
+    const discountService = new DiscountService(10);
+    const logger = new LoggingService();
+
+    const checkout = new Checkout(
+        payment,
+        repo,
+        notifier,
+        validator,
+        discountService,
+        logger
+    );
+    
+    const result = await checkout.execute(cart);
+    
+    console.log(result);
+}
+
+main();
+```
+
+### IX.2.3. Run the code
+
+```bash
+npx ts-node src/indexIX.ts
+```
+
+### IX.2.4. Expected Output (Random payment success/failure)
+
+```bash
+[LOG]: Starting checkout process
+Stripe charged 45.00 PLN
+Email sent
+[LOG]: Checkout completed successfully
+{ success: true, data: undefined }
+```
+
+### IX.2.5. Easy code extensibility
+
+#### New payment method (e.g. [`CryptoPayment`](oop-ts-shop/src/domain/payment/CryptoPayment.ts)), can be added with zero changes in `Checkout` or other existing code
+
+```ts
+// src/domain/payment/CryptoPayment.ts
+import { IPaymentService } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok } from "../../shared/Result";
+
+export class CryptoPayment
+    implements IPaymentService {
+
+    async pay(amount: Money) {
+        console.log(
+            `Crypto charged ${amount.format()}`
+        );
+    
+        return ok(undefined);
+    }
+    name(): string {
+        return "Crypto";
+    }
+}
+```
+
+## IX.3. Testing Strategy Pattern & DIP
+
+### IX.3.1. Create [`Fake Payment`](oop-ts-shop/src/domain/payment/FakePayment.ts) Service for testing
+
+```ts
+// src/domain/payment/FakePayment.ts
+import { ok, fail, Result } from "../../shared/Result";
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+
+export class FakePaymentSuccess implements IPaymentService {
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        return ok(undefined);
+    }
+
+    name(): string {
+        return "Fake Success";
+    }
+}
+
+export class FakePaymentFailure implements IPaymentService {
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        return fail("PAYMENT_FAILED");
+    }
+
+    name(): string {
+        return "Fake Failure";
+    }
+}
+```
+
+### IX.3.2. Update [Checkout test](oop-ts-shop/tests/checkout.test.ts) to test with different payment strategies
+
+```ts
+// tests/checkout.test.ts
+...
+import { FakePaymentSuccess, FakePaymentFailure } from "../src/domain/payment/FakePayment";
+import { Product } from "../src/oop/products/Product";
+import { Money } from "../src/domain/Money";
+...
+
+describe("Checkout", () => {
+    ...
+            // Remove any PaymentServices (e.g. new CreditCardPayment()), to test FakePaymentFailure(),
+            new FakePaymentSuccess(), // Use FakePaymentSuccess for testing successful payment
+    })
+...
+    it("returns success with FakePaymentSuccess", async () => {
+        const checkout = new Checkout(
+            new FakePaymentSuccess(),
+            new FakeOrderRepository(),
+            new NotificationService(),
+            new CartValidator(),
+            new DiscountService(10),
+            new LoggingService()
+        );
+        const cart = new Cart();
+        const product = new Product("1", "Test", new Money(100, "PLN"));
+        
+        cart.add(product, 1);
+        const result = await checkout.execute(cart);
+        
+        expect(result.success).toBe(true);
+    });
+
+    it("handles payment failure with FakePaymentFailure", async () => {
+        const checkout = new Checkout(
+            new FakePaymentFailure(),
+            new FakeOrderRepository(),
+            new NotificationService(),
+            new CartValidator(),
+            new DiscountService(10),
+            new LoggingService()
+        );
+        const cart = new Cart();
+        const product = new Product("1", "Test", new Money(100, "PLN"));
+        
+        cart.add(product, 1);
+        const result = await checkout.execute(cart);
+        
+        expect(result.success).toBe(false);
+    });
+    ...
+```
+
+### IX.3.3. Run the tests
+
+```bash
+npx vitest tests/checkout.test.ts
+```
+
+### IX.3.4. Expected Test Output
+
+```bash
+ [LOG]: Checkout completed successfully
+
+stdout | tests/checkout.test.ts > Checkout > handles payment failure with FakePaymentFailure
+[LOG]: Starting checkout process
+
+stdout | tests/checkout.test.ts > Checkout > handles payment failure with FakePaymentFailure
+[LOG]: Checkout failed: Payment unsuccessful
+
+ ✓ tests/checkout.test.ts (3 tests) 5ms
+   ✓ Checkout (3)
+     ✓ fails for empty cart 3ms
+     ✓ returns success with FakePaymentSuccess 1ms
+     ✓ handles payment failure with FakePaymentFailure 0ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+    ...
+```
+
+### IX.3.5. Mandatory tasks
+
+To-do                                           | Status    | Reference
+---                                             | ---       | ---
+`PaymentMethod` interface (`IPaymentService`)   | ✅        | [`IX.1.1.`](#ix11-strategy-interface-ipaymentservice)
+Payment implementations                         | ✅        | [`IX.1.2.`](#ix12-implement-stripepayment) - [`IX.1.3.](#ix13-implement-paypalpayment)
+`Checkout` depends on abstraction               | ✅        | [`IX.2.1.`](#ix21-refactor-checkout-to-use-ipaymentservice-implementations)
+No `new StripePayment()` in `Checkout`          | ✅        | [`IX.2.1.`](#ix21-refactor-checkout-to-use-ipaymentservice-implementations)
+Tests with `FakePayment`                        | ✅        | [`IX.3.2.`](#ix32-update-checkout-test-to-test-with-different-payment-strategies)
+
+## IX.4. Additional tasks
+
+### IX.4.0. Create structure for additional payment methods
+
+```bash
+                                                ## src/
+                                                ## ├── config/
+mkdir -p src/config                             ## |   └── paymentConfig.ts
+touch src/config/paymentConfig.ts               ## └── domain/
+                                                ##     └── payment/
+touch src/domain/payment/ApplePayPayment.ts     ##         ├── ApplePayPayment.ts (instead of existing BlikPayment)
+touch src/domain/payment/GooglePayPayment.ts    ##         ├── GooglePayPayment.ts
+touch src/domain/payment/PaymentFactory.ts      ##         └── PaymentFactory.ts
+```
+
+### IX.4.1 Add [`ApplePayPayment`](oop-ts-shop/src/domain/payment/ApplePayPayment.ts) insted of existing `BlikPayment`
+
+```ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok, fail } from "../../shared/Result";
+
+export class ApplePayPayment implements IPaymentService {
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        console.log(`Apple Pay charged ${amount.format()}`);
+        
+        const success = Math.random() > 0.5;
+        
+        return success ? ok(undefined) : fail("PAYMENT_FAILED");
+    }
+
+    name(): string {
+        return "Apple Pay";
+    }
+}
+```
+
+### IX.4.2. Add [`GooglePayPayment`](oop-ts-shop/src/domain/payment/GooglePayPayment.ts)
+
+```ts
+import { IPaymentService, PaymentError } from "./IPaymentService";
+import { Money } from "../Money";
+import { Result, ok, fail } from "../../shared/Result";
+
+export class GooglePayPayment implements IPaymentService {
+    async pay(amount: Money): Promise<Result<void, PaymentError>> {
+        console.log(`Google Pay charged ${amount.format()}`);
+        
+        const success = Math.random() > 0.5;
+        
+        return success ? ok(undefined) : fail("PAYMENT_FAILED");
+    }
+
+    name(): string {
+        return "Google Pay";
+    }
+}
+```
+
+### IX.4.3. Add `Refund()`
+
+#### In [`IPaymentService`](oop-ts-shop/src/domain/payment/IPaymentService.ts) add new method signature for `refund()`
+
+```ts
+// src/domain/payment/IPaymentService.ts
+...
+export type PaymentError = 
+| "REFUND_FAILED"
+...
+
+export interface IPaymentService {
+    ...
+    refund(amount: Money): Promise<Result<void, PaymentError>>;
+    ...
+}
+```
+
+#### In each payment implementation add refund method
+
+* [`StripePayment`](oop-ts-shop/src/domain/payment/StripePayment.ts)
+* [`PayPalPayment`](oop-ts-shop/src/domain/payment/PayPalPayment.ts)
+* [`BlikPayment`](oop-ts-shop/src/domain/payment/BlikPayment.ts)
+* [`CryptoPayment`](oop-ts-shop/src/domain/payment/CryptoPayment.ts)
+* [`ApplePayPayment`](oop-ts-shop/src/domain/payment/ApplePayPayment.ts)
+* [`GooglePayPayment`](oop-ts-shop/src/domain/payment/GooglePayPayment.ts)
+
+    ```ts
+    // src/domain/payment/StripePayment.ts
+    // src/domain/payment/PayPalPayment.ts
+    // src/domain/payment/BlikPayment.ts
+    // src/domain/payment/CryptoPayment.ts
+    // src/domain/payment/ApplePayPayment.ts
+    // src/domain/payment/GooglePayPayment.ts
+    ...
+    import { IPaymentService, PaymentError } from "./IPaymentService";
+        ...
+        async refund(
+            amount: Money
+        ): Promise<Result<void, PaymentError>> {
+            
+            console.log(
+                `${this.name()} refunded ${amount.format()}`);
+            
+            return ok(undefined);
+        }
+        ...
+    ```
+
+* [`FakePayment`](oop-ts-shop/src/domain/payment/FakePayment.ts)
+
+    ```ts
+    // src/domain/payment/FakePayment.ts
+    export class FakePaymentSuccess implements IPaymentService {
+        ...
+        async refund(amount: Money): Promise<Result<void, PaymentError>> {
+            return ok(undefined);
+        }
+        ...
+    }
+        ...
+    export class FakePaymentFailure implements IPaymentService {
+        ...
+        async refund(amount: Money): Promise<Result<void, PaymentError>> {
+            return fail("REFUND_FAILED");
+        }
+        ...
+    }
+    ```
+
+### IX.4.4. Add `supportsCurrency(currency)`
+
+#### In [`IPaymentService`](oop-ts-shop/src/domain/payment/IPaymentService.ts) add new method signature for `supportsCurrency()`
+
+```ts
+// src/domain/payment/IPaymentService.ts
+...
+export type PaymentError = 
+| "UNSUPPORTED_CURRENCY"   
+...
+
+export interface IPaymentService {
+    ...
+    supportsCurrency(currency: string): boolean;
+    ...
+}
+```
+
+#### In each payment implementation add supported currencies logic
+
+* [`StripePayment`](oop-ts-shop/src/domain/payment/StripePayment.ts)
+* [`PayPalPayment`](oop-ts-shop/src/domain/payment/PayPalPayment.ts)
+* [`BlikPayment`](oop-ts-shop/src/domain/payment/BlikPayment.ts)
+* [`CryptoPayment`](oop-ts-shop/src/domain/payment/CryptoPayment.ts)
+* [`ApplePayPayment`](oop-ts-shop/src/domain/payment/ApplePayPayment.ts)
+* [`GooglePayPayment`](oop-ts-shop/src/domain/payment/GooglePayPayment.ts)
+
+    ```ts
+    // src/domain/payment/StripePayment.ts
+    // src/domain/payment/PayPalPayment.ts
+    // src/domain/payment/BlikPayment.ts
+    // src/domain/payment/CryptoPayment.ts
+    // src/domain/payment/ApplePayPayment.ts
+    // src/domain/payment/GooglePayPayment.ts
+        ...
+        supportsCurrency(currency: string): boolean {
+            const supportedCurrencies = ["USD", "EUR", "PLN"];
+            return supportedCurrencies.includes(currency);
+        }
+        ...
+    ```
+
+* [`FakePayment`](oop-ts-shop/src/domain/payment/FakePayment.ts)
+
+    ```ts
+    // src/domain/payment/FakePayment.ts
+    export class FakePaymentSuccess implements IPaymentService {
+        ...
+        supportsCurrency(currency: string): boolean {   
+            return true; // Supports all currencies for testing
+        }
+        ...
+    }
+        ...
+    export class FakePaymentFailure implements IPaymentService {
+        ...
+        supportsCurrency(currency: string): boolean {   
+            return true; // Supports all currencies for testing
+        }
+        ...
+    }
+    ```
+
+### IX.4.5. Payment selection from config
+
+#### Create simple [config file](oop-ts-shop/src/config/paymentConfig.ts) for payment method selection
+
+```ts
+// src/config/paymentConfig.ts
+export const paymentConfig = {
+    preferredPayment: "blik"
+};
+```
+
+### IX.4.6. Add [`PaymentFactory`](oop-ts-shop/src/domain/payment/PaymentFactory.ts)
+
+```ts
+// src/domain/payment/PaymentFactory.ts
+import { IPaymentService } from "./IPaymentService";
+import { StripePayment } from "./StripePayment";
+import { PayPalPayment } from "./PayPalPayment";
+import { BlikPayment } from "./BlikPayment";
+import { ApplePayPayment } from "./ApplePayPayment";
+import { GooglePayPayment } from "./GooglePayPayment";
+import { CryptoPayment } from "./CryptoPayment";
+
+export class PaymentFactory {
+    static create(type: string): IPaymentService {
+        switch (type.toLowerCase()) {
+            case "applepay":
+                return new ApplePayPayment();
+            case "blik":
+                return new BlikPayment();
+            case "crypto":
+                return new CryptoPayment();
+            case "googlepay":
+                return new GooglePayPayment();
+            case "stripe":
+                return new StripePayment();
+            case "paypal":
+                return new PayPalPayment();
+            default:
+                throw new Error(`Unknown payment type: ${type}`);
+        }
+    }
+}
+```
+
+### IX.4.7. Refactor [indexIX](oop-ts-shop/src/indexIX.ts) to use `PaymentFactory` and config
+
+```ts
+import { paymentConfig } from "./config/paymentConfig";
+import { PaymentFactory } from "./domain/payment/PaymentFactory";           // Instead of { StripePayment } ...
+...
+
+
+    const paymentMethod = PaymentFactory.create(paymentConfig.preferredPayment); //  // Use factory to create payment method based on config
+    
+    ...
+
+    const checkout = new Checkout(
+        paymentMethod,                                                          // Instead of payment,
+        ...
+    );
+    
+    console.log(`--- Executing ${paymentMethod.name()} Checkout ---`);          // Add log to indicate which payment method is being used
+    ...
+```
+
+### IX.4.8. Run the code
+
+```bash
+npx ts-node src/indexIX.ts
+```
+
+### IX.4.9. Expected Output (Random payment success/failure)
+
+* In case of success:
+
+    ```bash
+    --- Executing Blik Checkout ---
+    [LOG]: Starting checkout process
+    Blik charged 45.00 PLN
+    Email sent
+    [LOG]: Checkout completed successfully
+    { success: true, data: undefined }
+    ```
+
+* In case of failure:
+
+    ```bash
+    --- Executing Blik Checkout ---
+    [LOG]: Starting checkout process
+    Blik charged 45.00 PLN
+    [LOG]: Checkout failed: Payment unsuccessful
+    { success: false, error: 'PAYMENT_FAILED' }
+    ```

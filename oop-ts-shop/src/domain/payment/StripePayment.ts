@@ -1,13 +1,22 @@
-// Lab VIII.4.5.
+// Lab IX.1.2.
 import { IPaymentService, PaymentError } from "./IPaymentService";
 import { Money } from "../Money";
 import { Result, ok, fail } from "../../shared/Result";
 
-export class BlikPayment implements IPaymentService {
+export class StripePayment implements IPaymentService {
+    async pay(
+        amount: Money
+    ): Promise<Result<void, PaymentError>> {
 
-    async pay(amount: Money): Promise<Result<void, PaymentError>> {
-        console.log(`Blik charged ${amount.format()}`);
-        return Math.random() > 0.5 ? ok(undefined) : fail("PAYMENT_FAILED"); // Simulate random payment success/failure
+        console.log(
+            `Stripe charged ${amount.format()}`
+        );
+        
+        const success = Math.random() > 0.5;
+        
+        return success 
+            ? ok(undefined) 
+            : fail("PAYMENT_FAILED");
     }
 
     // < IX.4.3.>
@@ -30,6 +39,6 @@ export class BlikPayment implements IPaymentService {
     // </IX.4.4.>
 
     name(): string {
-        return "Blik";
+        return "Stripe";
     }
 }

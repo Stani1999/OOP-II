@@ -2,7 +2,10 @@
 import { Money } from "../Money";
 
 export class DiscountService {
-    applyDiscount(total: Money, percent: number): Money {
-        return total.multiply((100 - percent) / 100);
+    constructor(private readonly percentage: number) {}
+
+    applyDiscount(total: Money): Money {
+        const discountAmount = Math.round(total.amount * (this.percentage / 100));
+        return new Money(total.amount - discountAmount, total.currency);
     }
 }
