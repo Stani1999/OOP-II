@@ -1,4 +1,8 @@
 //Lab VIII.1.2.
+// <X.3.1.>
+import { EventBus } from "../shared/EventBus";
+import { OrderPaidEvent } from "../domain/events/OrderPaidEvent";
+// </X.3.1.>
 import { Result, ok, fail } from "../shared/Result";
 import { Cart } from "../oop/carts/Cart";
 // import { PaymentService } from "../domain/services/PaymentService"; // <VIII.5.1.>
@@ -20,7 +24,7 @@ export class Checkout {
     constructor(
         private readonly payment: IPaymentService,    // <VIII.5.1.> PaymentService -> IPaymentService
         private readonly repo: IOrderRepository,
-        private readonly notifier: NotificationService,
+        private readonly eventBus: EventBus,                // <X.3.1.> private readonly notifier: NotificationService -> eventBus: EventBus
         private readonly validator: CartValidator
         // <VIII.5.1.> // Add new services to constructor:
         ,private readonly discountService: DiscountService,
@@ -33,7 +37,7 @@ export class Checkout {
         this.logger.log("Starting checkout process"); // <VIII.5.1./> Add Log at the beginning of execute method
 
         if (!this.validator.validate(cart)) {
-            this.logger.log("Checkout failed: Cart is empty"); // <VIII.5.1.> Add Log validation failure in execute method
+            this.logger.log("Checkout failed: Cart is empty"); // <VIII.5.1./> Add Log validation failure in execute method
             return fail("EMPTY_CART");
         }
 
@@ -62,7 +66,15 @@ export class Checkout {
             total: discountedTotal // <VIII.5.1./> total -> total: discountedTotal
         });
 
-        this.notifier.send();
+        // <X.3.1.>this.notifier.send() -> await this.eventBus.publish(...)
+        await this.eventBus.publish(
+            new OrderPaidEvent(
+                "order-1", 
+                discountedTotal
+            )
+        );
+        // <X.3.1.>
+
         this.logger.log("Checkout completed successfully"); // <VIII.5.1./> Add Log at the end of execute method
 
         return ok(undefined);

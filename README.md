@@ -3454,9 +3454,9 @@ Tests with `FakePayment`                        | ✅        | [`IX.3.2.`](#ix32
 
 ```bash
                                                 ## src/
-                                                ## ├── config/
-mkdir -p src/config                             ## |   └── paymentConfig.ts
-touch src/config/paymentConfig.ts               ## └── domain/
+mkdir -p src/config                             ## ├── config/
+touch src/config/paymentConfig.ts               ## |   └── paymentConfig.ts
+                                                ## └── domain/
                                                 ##     └── payment/
 touch src/domain/payment/ApplePayPayment.ts     ##         ├── ApplePayPayment.ts (instead of existing BlikPayment)
 touch src/domain/payment/GooglePayPayment.ts    ##         ├── GooglePayPayment.ts
@@ -3689,20 +3689,20 @@ export class PaymentFactory {
 
 ```ts
 import { paymentConfig } from "./config/paymentConfig";
-import { PaymentFactory } from "./domain/payment/PaymentFactory";           // Instead of { StripePayment } ...
+import { PaymentFactory } from "./domain/payment/PaymentFactory";                // Instead of { StripePayment } ...
 ...
 
 
-    const paymentMethod = PaymentFactory.create(paymentConfig.preferredPayment); //  // Use factory to create payment method based on config
+    const paymentMethod = PaymentFactory.create(paymentConfig.preferredPayment); // Use factory to create payment method based on config
     
     ...
 
     const checkout = new Checkout(
-        paymentMethod,                                                          // Instead of payment,
+        paymentMethod,                                                           // Instead of payment,
         ...
     );
     
-    console.log(`--- Executing ${paymentMethod.name()} Checkout ---`);          // Add log to indicate which payment method is being used
+    console.log(`--- Executing ${paymentMethod.name()} Checkout ---`);           // Add log to indicate which payment method is being used
     ...
 ```
 
@@ -3734,3 +3734,519 @@ npx ts-node src/indexIX.ts
     [LOG]: Checkout failed: Payment unsuccessful
     { success: false, error: 'PAYMENT_FAILED' }
     ```
+
+## **Lab X: Domain Events + Observer Pattern**
+
+## X.1. Domain Events
+
+### X.1.0. Create structure for Event-Driven Architecture
+
+```bash
+                                                        ## src/
+                                                        ## ├── domain/
+mkdir -p src/domain/events                              ## |   └── events/
+touch src/domain/events/DomainEvent.ts                  ## |       ├── DomainEvent.ts
+touch src/domain/events/EventHandler.ts                 ## |       ├── EventHandler.ts
+touch src/domain/events/FakeHandler.ts                  ## |       ├── FakeHandler.ts
+touch src/domain/events/OrderPaidEvent.ts               ## |       └── OrderPaidEvent.ts
+cp src/indexIX.ts src/indexX.ts                         ## ├── indexX.ts
+                                                        ## ├── infra/
+mkdir -p src/infra/events                               ## |   └── events/
+touch src/infra/events/SendEmailOnOrderPaid.ts          ## |       ├── SendEmailOnOrderPaid.ts
+touch src/infra/events/TrackAnalyticsOnOrderPaid.ts     ## |       └── TrackAnalyticsOnOrderPaid.ts
+                                                        ## └── shared/
+touch src/shared/EventBus.ts                            ##     └── EventBus.ts
+                                                        ## tests/
+touch tests/eventBus.test.ts                            ## └── eventBus.test.ts
+```
+
+### X.1.1. Create [`DomainEvent`](oop-ts-shop/src/domain/events/DomainEvent.ts) interface
+
+```ts
+// src/domain/events/DomainEvent.ts
+export interface DomainEvent {
+    name: string;
+    occurredAt: Date;
+}
+```
+
+### X.1.2. Create [`OrderPaidEvent`](oop-ts-shop/src/domain/events/OrderPaidEvent.ts)
+
+```ts
+// src/domain/events/OrderPaidEvent.ts
+import { DomainEvent } from "./DomainEvent";
+import { Money } from "../Money";
+
+export class OrderPaidEvent 
+    implements DomainEvent {
+
+    readonly name = "OrderPaid";
+
+    readonly occurredAt = new Date();
+
+    constructor(
+        public readonly orderId: string,
+        public readonly total: Money
+    ) {}
+}
+```
+
+### X.1.3. Create [`EventHandler`](oop-ts-shop/src/domain/events/EventHandler.ts) interface
+
+```ts
+// src/domain/events/EventHandler.ts
+import { DomainEvent } from "./DomainEvent";
+
+export interface EventHandler<T extends DomainEvent> {
+    handle(event: T): Promise<void>;
+}
+```
+
+## X.2. Event Bus Setup
+
+### X.2.1. Create [`SendEmailOnOrderPaid`](oop-ts-shop/src/infra/events/SendEmailOnOrderPaid.ts)
+
+```ts
+// src/infra/events/SendEmailOnOrderPaid.ts
+import { EventHandler } from "../../domain/events/EventHandler";
+import { OrderPaidEvent } from "../../domain/events/OrderPaidEvent";
+
+export class SendEmailOnOrderPaid 
+    implements EventHandler<OrderPaidEvent> {
+    
+    async handle(event: OrderPaidEvent): Promise<void> {
+
+        console.log(
+            `Email sent for order ${event.orderId}`
+        );
+    }
+}
+```
+
+### X.2.2. Create [`TrackAnalyticsOnOrderPaid`](oop-ts-shop/src/infra/events/TrackAnalyticsOnOrderPaid.ts)
+
+```ts
+// src/infra/events/TrackAnalyticsOnOrderPaid.ts
+import { EventHandler } from "../../domain/events/EventHandler";
+import { OrderPaidEvent } from "../../domain/events/OrderPaidEvent";
+
+export class TrackAnalyticsOnOrderPaid 
+    implements EventHandler<OrderPaidEvent> {
+
+    async handle(event: OrderPaidEvent): Promise<void> {
+        console.log(
+            `Analytics tracked: ${event.total.format()}`
+        );
+    }
+}
+```
+
+### X.2.3. Implement [`EventBus`](oop-ts-shop/src/shared/EventBus.ts)
+
+```ts
+// src/shared/EventBus.ts
+import { DomainEvent } from "../domain/events/DomainEvent";
+import { EventHandler } from "../domain/events/EventHandler";
+
+export class EventBus {
+    private handlers: Record<string, EventHandler<any>[]> = {};
+
+    subscribe<T extends DomainEvent>(
+        eventName: string,
+        handler: EventHandler<T>
+    ): void {
+        if (!this.handlers[eventName]) {
+            this.handlers[eventName] = [];
+        }
+        this.handlers[eventName].push(handler);
+    }
+
+    async publish(event: DomainEvent): Promise<void> {
+        const handlers = 
+        this.handlers[event.name] || [];
+        
+        for (const handler of handlers) {
+            await handler.handle(event);
+        }
+    }
+}
+
+```
+
+## X.3. Refactoring to Event-Driven Architecture
+
+### X.3.1. Refactor [`Checkout`](oop-ts-shop/src/app/Checkout.ts) to publish events
+
+```ts
+// src/app/Checkout.ts
+import { EventBus } from "../shared/EventBus";
+import { OrderPaidEvent } from "../domain/events/OrderPaidEvent";
+...
+
+
+export class Checkout {
+    constructor(
+        ...
+        private readonly eventBus: EventBus,                            // private readonly notifier: NotificationService -> eventBus: EventBus
+        ...
+    ) {}
+    ...
+
+        // this.notifier.send() -> await this.eventBus.publish(...)
+        await this.eventBus.publish(
+            new OrderPaidEvent(
+                "order-1", 
+                discountedTotal
+            )
+        );
+        ...
+```
+
+### X.3.2. Make Composition Root in [`indexX.ts`](oop-ts-shop/src/indexX.ts)
+
+```ts
+// src/indexX.ts
+import { EventBus } from "./shared/EventBus";
+import { SendEmailOnOrderPaid } from "./infra/events/SendEmailOnOrderPaid";
+import { TrackAnalyticsOnOrderPaid } from "./infra/events/TrackAnalyticsOnOrderPaid";
+...
+// import { NotificationService } from "./domain/services/NotificationService";
+...
+
+async function main() {
+    ...
+    // Replace: onst notifier = new NotificationService(); with:
+    const eventBus = new EventBus();
+
+    eventBus.subscribe(
+        "OrderPaid", 
+        new SendEmailOnOrderPaid()
+    );
+
+    eventBus.subscribe(
+        "OrderPaid", 
+        new TrackAnalyticsOnOrderPaid()
+    );
+    ...
+    
+    const checkout = new Checkout(
+        paymentMethod,
+        repo,
+        eventBus,                                                       // notifier -> eventBus
+        validator,
+        ...
+    );
+    ...
+}
+```
+
+## X.4. Tests
+
+### X.4.1. Create [Fake Handler](oop-ts-shop/src/domain/events/FakeHandler.ts) for testing
+
+```ts
+// src/domain/events/FakeHandler.ts
+import { EventHandler } from "./EventHandler";
+import { OrderPaidEvent } from "./OrderPaidEvent";
+
+export class FakeHandler 
+    implements EventHandler<OrderPaidEvent> {
+
+    called = false;
+
+    async handle(): Promise<void> {
+        this.called = true;
+    }
+}
+```
+
+### X.4.2. Write [EventBus tests](oop-ts-shop/tests/eventBus.test.ts)
+
+```ts
+// tests/eventBus.test.ts
+import { describe, it, expect } from "vitest";
+import { EventBus } from "../src/shared/EventBus";
+import { FakeHandler } from "../src/domain/events/FakeHandler";
+import { OrderPaidEvent } from "../src/domain/events/OrderPaidEvent";
+import { Money } from "../src/domain/Money";
+
+describe("EventBus", () => {
+    it("calls subscribed handlers", async () => {
+        const bus = new EventBus();
+        const handler = new FakeHandler();
+        
+        bus.subscribe(
+            "OrderPaid", 
+            handler
+        );
+        
+        await bus.publish(
+            new OrderPaidEvent(
+                "1", 
+                new Money(1000, "PLN")
+            )
+        );
+
+        expect(handler.called)
+        .toBe(true);
+    });
+});
+```
+
+### X.4.3. Run the tests
+
+```bash
+npx vitest tests/eventBus.test.ts
+```
+
+### X.4.4. Expected Output
+
+```bash
+ ✓ tests/eventBus.test.ts (1 test) 3ms
+   ✓ EventBus (1)
+     ✓ calls subscribed handlers 2ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+      ...
+```
+
+### X.4.5. New Index test
+
+```bash
+npx ts-node src/indexX.ts
+```
+
+### X.4.6. Expected Output (Random payment success/failure)
+
+* In case of success:
+
+    ```bash
+    --- Executing Blik Checkout ---
+    [LOG]: Starting checkout process
+    Blik charged 45.00 PLN
+    Email sent for order order-1
+    Analytics tracked: 45.00 PLN
+    [LOG]: Checkout completed successfully
+    { success: true, data: undefined }
+    ```
+
+* In case of failure:
+
+    ```bash
+    --- Executing Blik Checkout ---
+    [LOG]: Starting checkout process
+    Blik charged 45.00 PLN
+    Email sent for order order-1
+    Analytics tracked: 45.00 PLN
+    [LOG]: Checkout completed successfully
+    { success: true, data: undefined }
+    ```
+
+### X.4.7. Mandatory tasks
+
+To-do                       | Status    | Reference
+---                         | ---       | ---
+`DomainEvent`               | ✅        | [`X.1.1.`](#x11-create-domainevent-interface)
+`EventBus`                  | ✅        | [`X.2.3.`](#x23-implement-eventbus)
+Observer Pattern            | ✅        | [`X.2.3.`](#x23-implement-eventbus)
+`OrderPaidEvent`            | ✅        | [`X.1.2.`](#x12-create-orderpaidevent)
+Minimum 2 handlers          | ✅        | [`X.2.1.`](#x21-create-sendemailonorderpaid) - [`X.2.2.`](#x22-create-trackanalyticsonorderpaid)
+Checkout publishes event    | ✅        | [`X.3.1.`](#x31-refactor-checkout-to-publish-events)
+Test EventBus               | ✅        | [`X.4.2.`](#x42-write-eventbus-tests)
+
+## X.5. Additional tasks
+
+### X.5.0. Create structure for additional tasks
+
+```bash
+## src/
+                                                            ## ├── domain/
+                                                            ## |   └── events/
+touch src/domain/events/OrderCreatedEvent.ts                ## |       ├── OrderCreatedEvent.ts
+touch src/domain/events/PaymentFailedEvent.ts               ## |       └── PaymentFailedEvent.ts
+                                                            ## ├── infra/
+                                                            ## |   └── events/
+touch src/infra/events/GenerateInvoiceHandler.ts            ## |       ├── GenerateInvoiceHandler.ts
+touch src/infra/events/RetryEventHandler.ts                 ## |       └── RetryEventHandler.ts
+                                                            ## └── shared/
+touch src/shared/AsyncEventBus.ts                           ##     └── AsyncEventBus.ts
+```
+
+### X.5.1. Add new event [`OrderCreatedEvent`](oop-ts-shop/src/domain/events/OrderCreatedEvent.ts)
+
+```ts
+// src/domain/events/OrderCreatedEvent.ts
+import { DomainEvent } from "./DomainEvent";
+import { CartItem } from "../../oop/carts/CartItem";
+import { Money } from "../Money";
+
+export class OrderCreatedEvent 
+    implements DomainEvent {
+    
+    readonly name = "OrderCreated";
+    readonly occurredAt = new Date();
+
+    constructor(
+        public readonly orderId: string,
+        public readonly items: CartItem[],
+        public readonly total: Money
+    ) {}
+}
+```
+
+### X.5.2. Add [`PaymentFailedEvent`](oop-ts-shop/src/domain/events/PaymentFailedEvent.ts)
+
+```ts
+// src/domain/events/PaymentFailedEvent.ts
+import { DomainEvent } from "./DomainEvent";
+
+export class PaymentFailedEvent 
+    implements DomainEvent {
+    
+    readonly name = "PaymentFailed";
+    readonly occurredAt = new Date();
+
+    constructor(
+        public readonly orderId: string,
+        public readonly reason: string
+    ) {}
+}
+```
+
+### X.5.3. Add [`GenerateInvoiceHandler`](oop-ts-shop/src/infra/events/GenerateInvoiceHandler.ts)
+
+```ts
+// src/infra/events/GenerateInvoiceHandler.ts
+import { EventHandler } from "../../domain/events/EventHandler";
+import { OrderPaidEvent } from "../../domain/events/OrderPaidEvent";
+
+export class GenerateInvoiceHandler 
+    implements EventHandler<OrderPaidEvent> {
+    
+    async handle(
+        event: OrderPaidEvent
+    ): Promise<void> {
+        
+        console.log(
+            `Invoice generated for order: ${event.orderId}, total: ${event.total.format()}`
+        );
+    }
+}
+```
+
+### X.5.4. Add `retry handler` ([`RetryEventHandler`](oop-ts-shop/src/infra/events/RetryEventHandler.ts)) as Decorator for any event handler
+
+```ts
+// src/infra/events/RetryEventHandler.ts
+import { EventHandler } from "../../domain/events/EventHandler";
+import { DomainEvent } from "../../domain/events/DomainEvent";
+
+export class RetryEventHandler<T extends DomainEvent>
+    implements EventHandler<T> {
+
+    constructor(
+        private readonly handler: EventHandler<T>,
+        private readonly maxRetries: number = 3
+    ) {}
+
+    async handle(event: T): Promise<void> {
+        let attempts = 0;
+        
+        while (attempts < this.maxRetries) {
+            try {
+                await this.handler.handle(event);
+                return;
+            } catch (error) {
+                attempts++;
+                console.log(
+                    `Handler failed, retrying... (${attempts}/${this.maxRetries})`
+                );
+                
+                if (attempts >= this.maxRetries) {
+                    throw error;
+                }
+            }
+        }
+    }
+}
+```
+
+### X.5.5. Add `async queue` ([`AsyncEventBus`](oop-ts-shop/src/shared/AsyncEventBus.ts))
+
+```ts
+// src/shared/AsyncEventBus.ts
+import { DomainEvent } from "../domain/events/DomainEvent";
+import { EventHandler } from "../domain/events/EventHandler";
+import { RetryEventHandler } from "../infra/events/RetryEventHandler";
+
+export class AsyncEventBus {
+    private handlers: Record<string, EventHandler<any>[]> = {};
+    private queue: DomainEvent[] = [];
+    private isProcessing = false;
+
+    subscribe<T extends DomainEvent>(
+        eventName: string,
+        handler: EventHandler<T>
+    ): void {
+        if (!this.handlers[eventName]) {
+            this.handlers[eventName] = [];
+        }
+        this.handlers[eventName].push(handler);
+    }
+
+    async publish(event: DomainEvent): Promise<void> {
+        this.queue.push(event);
+        
+        if (!this.isProcessing) {
+            this.processQueue();
+        }
+    }
+
+    private async processQueue(): Promise<void> {
+        this.isProcessing = true;
+        
+        while (this.queue.length > 0) {
+            const event = this.queue.shift();
+            
+            if (event) {
+                const handlers = this.handlers[event.name] || [];
+                const promises = handlers.map(handler => 
+                    new RetryEventHandler(handler).handle(event)
+                );
+                
+                await Promise.allSettled(promises);
+            }
+        }
+        
+        this.isProcessing = false;
+    }
+}
+```
+
+### X.5.6. Add `unsubscribe()`
+
+[`EneventBus`](oop-ts-shop/src/shared/EventBus.ts) and
+[`AsyncEventBus`](oop-ts-shop/src/shared/AsyncEventBus.ts)
+
+```ts
+// src/shared/EventBus.ts
+// src/shared/AsyncEventBus.ts
+...
+
+export class X {                                                 // X is EventBus or AsyncEventBus
+    ...
+    unsubscribe<T extends DomainEvent>(
+        eventName: string,
+        handler: EventHandler<T>
+    ): void {
+        if (!this.handlers[eventName]) {
+            return;
+        }
+        
+        this.handlers[eventName] = this.handlers[eventName].filter(
+            h => h !== handler
+        );
+    }
+    ...
+```
