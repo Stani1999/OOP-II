@@ -4250,3 +4250,569 @@ export class X {                                                 // X is EventBu
     }
     ...
 ```
+
+## **Lab XI: API Building with Express**
+
+## XI.1. API Structure Setup
+
+### XI.1.0. Create structure for API
+
+```bash
+                                                ## src/
+mkdir -p src/api                                ## └── api/
+touch src/api/server.ts                         ##     ├── server.ts
+mkdir -p src/api/dto                            ##     ├── dto/
+touch src/api/dto/ProductDTO.ts                 ##     |   └── ProductDTO.ts
+mkdir -p src/api/mappers                        ##     ├── mappers/
+touch src/api/mappers/ProductMapper.ts          ##     |   └── ProductMapper.ts
+mkdir -p src/api/controllers                    ##     ├── controllers/
+touch src/api/controllers/ProductController.ts  ##     |   └── ProductController.ts
+mkdir -p src/api/routers                        ##     └── routers/
+touch src/api/routers/ProductRouter.ts          ##         └── ProductRouter.ts
+```
+
+### XI.1.1. Download `express cors`
+
+```bash
+npm install express cors
+npm install -D @types/express @types/cors nodemon
+```
+
+### XI.1.2. Update [`package.json`](oop-ts-shop/package.json) with start script
+
+```json
+{
+...
+  "scripts": {
+    "dev:api": "nodemon --exec ts-node src/api/server.ts",
+    ...
+  },
+  ...
+}
+```
+
+### XI.1.3. Create [Server](oop-ts-shop/src/api/server.ts)
+
+```ts
+// src/api/server.ts
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/health", (_req, res) => {
+    res.json({ status: "ok" });
+});
+
+const port = 3000;
+
+app.listen(port, () => {
+    console.log(`API running on http://localhost:${port}`);
+});
+```
+
+### XI.1.4. Run the API
+
+```bash
+npm run dev:api
+```
+
+## XI.2. Products DTO
+
+### XI.2.1. Create [`ProductDTO`](oop-ts-shop/src/api/dto/ProductDTO.ts)
+
+```ts
+// src/api/dto/ProductDTO.ts
+export type ProductDTO = {
+    id: string;
+    name: string;
+    price: {
+        amount: number;
+        currency: string;
+        formatted: string;
+    };
+};
+```
+
+### XI.2.2. Add [`Product Mapper`](oop-ts-shop/src/api/mappers/ProductMapper.ts)
+
+```ts
+// src/api/mappers/ProductMapper.ts
+import { Product } from "../../oop/products/Product";
+import { ProductDTO } from "../dto/ProductDTO";
+
+export class ProductMapper {
+    static toDTO(product: Product): ProductDTO {
+        return {
+            id: product.id,
+            name: product.name,
+            price: {
+                amount: product.price.amount,
+                currency: product.price.currency,
+                formatted: product.price.format()
+            }
+        };
+    }
+}   
+```
+
+### XI.2.3. Add [`Product Controller`](oop-ts-shop/src/api/controllers/ProductController.ts)
+
+```ts
+// src/api/controllers/ProductController.ts
+import { Request, Response } from "express";
+import { ListProducts } from "../../app/ListProducts";
+import { ProductMapper } from "../mappers/ProductMapper";
+
+export class ProductController {
+  constructor(private readonly listProducts: ListProducts) {}
+
+  async list(_req: Request, res: Response): Promise<void> {
+    const products = await this.listProducts.execute();
+
+    res.json({
+      items: products.map(ProductMapper.toDTO)
+    });
+  }
+}
+```
+
+### XI.2.4. Add [`Product Router`](oop-ts-shop/src/api/routers/ProductRouter.ts)
+
+```ts
+// src/api/routers/ProductRouter.ts
+import { Router } from "express";
+import { ProductController } from "../controllers/ProductController";
+
+export function createProductRoutes(controller: ProductController): Router {
+  const router = Router();
+
+  router.get("/", (req, res) => {
+    void controller.list(req, res);
+  });
+
+  return router;
+}
+```
+
+### XI.2.5. Integrate `Product Router` in [`Server`](oop-ts-shop/src/api/server.ts)
+
+```ts
+import { InMemoryProductRepository } from "../infra/InMemoryProductRepository";
+import { ListProducts } from "../app/ListProducts";
+import { ProductController } from "./controllers/ProductController";
+import { createProductRoutes } from "./routers/ProductRouter";
+...
+const productRepository = new InMemoryProductRepository();  
+const listProducts = new ListProducts(productRepository);
+const productController = new ProductController(listProducts);
+
+app.use("/api/products", createProductRoutes(productController));
+...
+```
+
+### XI.2.6. Test the API
+
+* Run the API
+
+    ```bash
+    npm run dev:api
+    ```
+
+* Test with curl
+
+    ```bash
+    curl http://localhost:3000/api/products
+    ```
+
+## XI.3. Cart DTO
+
+### XI.3.0. Create structure for Cart API
+
+```bash
+                                                ## src/
+                                                ## └── api/
+                                                ##     ├── dto/
+touch src/api/dto/CartDTO.ts                    ##     |   └── CartDTO.ts
+                                                ##     ├── mappers/
+touch src/api/mappers/CartMapper.ts             ##     |   └── CartMapper.ts
+                                                ##     ├── controllers/
+touch src/api/controllers/CartController.ts     ##     |   └── CartController.ts
+                                                ##     └── routers/
+touch src/api/routers/CartRouter.ts             ##         └── CartRouter.ts
+```
+
+### XI.3.1. Add [`CartDTO`](oop-ts-shop/src/api/dto/CartDTO.ts)
+
+```ts
+// src/api/dto/CartDTO.ts
+export type AddToCartRequestDTO = {
+  productId: string;
+  quantity: number;
+};
+
+export type CartDTO = {
+  totalItems: number;
+  totalPrice: string;
+};
+```
+
+### XI.3.2. Add  [`Cart Mapper`](oop-ts-shop/src/api/mappers/CartMapper.ts)
+
+```ts
+// src/api/mappers/CartMapper.ts
+import { Cart } from "../../oop/carts/Cart";
+import { CartDTO } from "../dto/CartDTO";
+
+export class CartMapper {
+  static toDTO(cart: Cart): CartDTO {
+    return {
+      totalItems: cart.totalItems(),
+      totalPrice: cart.totalPrice().format()
+    };
+  }
+}
+```
+
+### XI.3.3. Add  [`Cart Controller`](oop-ts-shop/src/api/controllers/CartController.ts)
+
+```ts
+// src/api/controllers/CartController.ts
+import { Request, Response } from "express";
+import { AddToCart } from "../../app/AddToCart";
+import { Checkout } from "../../app/Checkout";
+import { Cart } from "../../oop/carts/Cart";
+import { CartMapper } from "../mappers/CartMapper";
+import { AddToCartRequestDTO } from "../dto/CartDTO";
+
+export class CartController {
+  constructor(
+    private readonly cart: Cart,
+    private readonly addToCart: AddToCart,
+    private readonly checkout: Checkout
+  ) {}
+}
+```
+
+### XI.3.4. Add [`Cart Router`](oop-ts-shop/src/api/routers/CartRouter.ts)
+
+```ts
+// src/api/routers/CartRouter.ts
+import { Router } from "express";
+import { CartController } from "../controllers/CartController";
+
+export function createCartRoutes(controller: CartController): Router {
+  const router = Router();
+
+  router.get("/", (req, res) => {
+    controller.getCart(req, res);
+  });
+
+  router.post("/items", (req, res) => {
+    void controller.addItem(req, res);
+  });
+
+  router.post("/checkout", (req, res) => {
+    void controller.checkoutCart(req, res);
+  });
+
+  return router;
+}
+```
+
+### XI.3.5. Add Methods `getCart` to [`Cart Controller`](oop-ts-shop/src/api/controllers/CartController.ts)
+
+```ts
+// src/api/controllers/CartController.ts
+...
+  getCart(_req: Request, res: Response): void {
+    res.json(CartMapper.toDTO(this.cart));
+  }
+
+  async addItem(req: Request, res: Response): Promise<void> {
+    const body = req.body as AddToCartRequestDTO;
+
+    const result = await this.addToCart.execute(
+      body.productId,
+      body.quantity
+    );
+
+    if (!result.success) {
+      if (result.error === "PRODUCT_NOT_FOUND") {
+        res.status(404).json({ error: result.error });
+        return;
+      }
+
+      if (result.error === "INVALID_QUANTITY" || result.error === "EXCEEDS_MAX_QUANTITY") {
+        res.status(400).json({ error: result.error });
+        return;
+      }
+    }
+
+    res.status(201).json(CartMapper.toDTO(this.cart));
+  }
+```
+
+### XI.3.6. Add Methods `checkoutCart` to [`Cart Controller`](oop-ts-shop/src/api/controllers/CartController.ts)
+
+```ts
+// src/api/controllers/CartController.ts
+...
+  async checkoutCart(_req: Request, res: Response): Promise<void> {
+    const result = await this.checkout.execute(this.cart);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      message: "Checkout successful"
+    });
+  }
+```
+
+### XI.3.7. Update [`Server`](oop-ts-shop/src/api/server.ts) with `CartController`
+
+```ts
+// src/api/server.ts
+import { Cart } from "../oop/carts/Cart";
+import { AddToCart } from "../app/AddToCart";
+import { Checkout } from "../app/Checkout";
+import { CartController } from "./controllers/CartController";
+import { FakeOrderRepository } from "../infra/FakeOrderRepository";
+import { FakePaymentSuccess } from "../domain/payment/FakePayment";
+import { EventBus } from "../shared/EventBus";
+import { CartValidator } from "../domain/services/CartValidator";
+import { DiscountService } from "../domain/services/DiscountService";
+import { LoggingService } from "../domain/services/LoggingService";
+import { createCartRoutes } from "./routers/CartRouter";
+... 
+
+const orderRepository = new FakeOrderRepository();
+const paymentService = new FakePaymentSuccess();
+const eventBus = new EventBus();
+const cartValidator = new CartValidator();
+const discountService = new DiscountService(10);
+const logger = new LoggingService();
+
+const cart = new Cart();
+const addToCart = new AddToCart(productRepository, cart);
+const checkout = new Checkout(
+    paymentService,
+    orderRepository,
+    eventBus,
+    cartValidator,
+    discountService,
+    logger
+);
+
+const cartController = new CartController(cart, addToCart, checkout);
+
+app.use("/api/cart", createCartRoutes(cartController));
+...
+```
+
+### XI.3.8. Test the API
+
+* Run the API
+
+    ```bash
+    npm run dev:api
+    ```
+
+* Test with curl
+
+    ```bash
+    curl http://localhost:3000/api/cart
+    ```
+
+### XI.3.9. Expected Output
+
+```bash
+{
+  "totalItems": 0,
+  "totalPrice": "0.00 PLN"
+}
+```
+
+## XI.4. Test curl commands for all endpoints
+
+### XI.4.1. Test health endpoint
+
+```bash
+curl -i "http://localhost:3000/health"
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 200 OK
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 15
+    ETag: W/"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg"
+    Date: Wed, 03 Jun 2026 14:17:03 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"status":"ok"}
+    ```
+
+### XI.4.2. Test products endpoint
+
+```bash
+curl -i "http://localhost:3000/api/products"
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 200 OK
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 198
+    ETag: W/"c6-J8VIYWcBbo/JkiuL70KTU1NJ2NM"
+    Date: Wed, 03 Jun 2026 14:19:02 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"items":[{"id":"1","name":"Laptop","price":{"amount":300000,"currency":"PLN","formatted":"3000.00 PLN"}},{"id":"2","name":"Mouse","price":{"amount":5000,"currency":"PLN","formatted":"50.00 PLN"}}]}
+    ```
+
+### XI.4.3. Test get cart endpoint
+
+```bash
+curl -i "http://localhost:3000/api/cart"
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 200 OK
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 40
+    ETag: W/"28-c+8W3/BwRXO9chK4jzQYCcIk7tY"
+    Date: Wed, 03 Jun 2026 14:23:38 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"totalItems":0,"totalPrice":"0.00 PLN"}
+    ```
+
+### XI.4.4. Test add first item to cart
+
+```bash
+curl -i -X POST "http://localhost:3000/api/cart/items" -H "Content-Type: application/json" -d '{"productId":"1","quantity":2}'
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 201 Created
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 43
+    ETag: W/"2b-vKN+07SZ2nUzqHvlp8JHZRPI3hk"
+    Date: Wed, 03 Jun 2026 14:34:23 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"totalItems":2,"totalPrice":"6000.00 PLN"}
+    ```
+
+### XI.4.5. Test add second item to cart
+
+```bash
+curl -i -X POST "http://localhost:3000/api/cart/items" -H "Content-Type: application/json" -d '{"productId":"2","quantity":1}'
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 201 Created
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 43
+    ETag: W/"2b-9z1bymuJXj3QMVYwhYx5MgjD9rk"
+    Date: Wed, 03 Jun 2026 14:34:49 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"totalItems":3,"totalPrice":"6050.00 PLN"}
+    ```
+
+### XI.4.6. Test checkout endpoint
+
+```bash
+curl -i -X POST "http://localhost:3000/api/cart/checkout"
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 200 OKhost:3000/api/cart/checkout" 
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 33
+    ETag: W/"21-QCqYNlbse0H8dZkze0LsAidTSVg"
+    Date: Wed, 03 Jun 2026 14:35:18 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"message":"Checkout successful"}
+    ```
+
+### XI.4.7. Test add non-existing product
+
+```bash
+curl -i -X POST "http://localhost:3000/api/cart/items" -H "Content-Type: application/json" -d '{"productId":"999","quantity":1}'
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 404 Not Found
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 29
+    ETag: W/"1d-slJ9gFqo/gymvUtej8Kpoq41D2I"
+    Date: Wed, 03 Jun 2026 14:35:48 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"error":"PRODUCT_NOT_FOUND"}
+    ```
+
+### XI.4.8. Test add item with invalid quantity
+
+```bash
+curl -i -X POST "http://localhost:3000/api/cart/items" -H "Content-Type: application/json" -d '{"productId":"1","quantity":0}'
+```
+
+* Expected Output
+
+    ```bash
+    HTTP/1.1 400 Bad Request
+    X-Powered-By: Express
+    Access-Control-Allow-Origin: *
+    Content-Type: application/json; charset=utf-8
+    Content-Length: 28
+    ETag: W/"1c-N6oodFpwcuhDkYefaht5188VvJI"
+    Date: Wed, 03 Jun 2026 14:36:38 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+
+    {"error":"INVALID_QUANTITY"}
+    ```
